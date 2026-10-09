@@ -1,0 +1,16 @@
+// =============================================================================
+// Vorlage für module-info.java (liegt im src-Ordner, NICHT in einem Package)
+// =============================================================================
+// Nur nötig, wenn dein Projekt eine module-info.java hat (Eclipse fragt beim
+// Anlegen eines Java-Projekts danach). Ohne "requires java.desktop;" kennt das
+// Projekt kein Swing/AWT -> Fehler wie "The type javax.swing.JFrame is not accessible".
+//
+// Alternative: module-info.java einfach löschen.
+//
+// Den Modulnamen so lassen, wie die IDE ihn angelegt hat.
+module pruefung {
+    requires java.desktop;   // Swing + AWT (JFrame, JButton, Color, Graphics, ImageIO, ...)
+
+    // Nur falls ihr Packages nach außen geben wollt (in der Prüfung nicht nötig):
+    // exports de.dhbwka.java.exam;
+}

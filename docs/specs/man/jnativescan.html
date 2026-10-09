@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc,fixuphtml" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The jnativescan Command</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="../../resources/jdk-default.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+
+<header id="title-block-header">
+<div class="navbar"><div><strong>Java SE 25 & JDK 25</strong></div><nav><ul><li><a href="../../api/index.html">API</a>
+<li><a href="../index.html">OTHER SPECIFICATIONS</a>
+<li><a href="../man/index.html">TOOL GUIDES</a></ul></nav></div>
+
+<h1 class="title">The jnativescan Command</h1>
+</header>
+<nav id="TOC" role="doc-toc" title="Table Of Contents">
+<ul>
+<li><a href="#name" id="toc-name">Name</a></li>
+<li><a href="#synopsis" id="toc-synopsis">Synopsis</a></li>
+<li><a href="#description" id="toc-description">Description</a></li>
+<li><a href="#options-for-the-jnativescan-command"
+id="toc-options-for-the-jnativescan-command">Options for the jnativescan
+Command</a></li>
+<li><a href="#example-of-jnativescan-use"
+id="toc-example-of-jnativescan-use">Example of <code>jnativescan</code>
+use</a></li>
+</ul>
+</nav>
+<main><h2 id="name">Name</h2>
+<p>jnativescan - static analysis tool that scans one or more jar files
+for uses of native functionalities, such as restricted method calls or
+<code>native</code> method declarations.</p>
+<h2 id="synopsis">Synopsis</h2>
+<p><code>jnativescan</code> [<em>options</em>]</p>
+<dl>
+<dt><em>options</em></dt>
+<dd>
+See <a href="#options-for-the-jnativescan-command">Options for the
+jnativescan Command</a>
+</dd>
+</dl>
+<h2 id="description">Description</h2>
+<p>The <code>jnative</code> tool is a static analysis tool provided by
+the JDK that scans a JAR file for uses of native functionalities, such
+as restricted method calls or <code>native</code> method
+declarations.</p>
+<p><code>jnativescan</code> accepts a runtime class path and module path
+configuration, as well as a set of root modules, and a target release.
+It scans the jars on the class and module paths, and reports uses of
+native functionalities either in a tree like structure, which also
+identifies that calling classes and methods, or as a list of module
+names when the <code>--print-native-access</code> flag is specified.</p>
+<h2 id="options-for-the-jnativescan-command">Options for the jnativescan
+Command</h2>
+<p>The following options are available:</p>
+<dl>
+<dt><code>--class-path</code> <em>path</em></dt>
+<dd>
+Used to specify a list of paths pointing to jar files to be scanned.
+</dd>
+</dl>
+<p>All jar files specified through this list will be scanned. If a jar
+file contains a <code>Class-Path</code> attribute in its manifest, jar
+files listed there will be scanned as well. Jar files listed in the
+<code>Class-Path</code> manifest attribute that can not be found are
+ignored. All the jar files found are treated as if they belonged to the
+unnamed module.</p>
+<dl>
+<dt><code>--module-path</code> <em>path</em></dt>
+<dd>
+<p>Used to specify a list of paths pointing to jar files or directories
+containing jar files, that the tool can use to find modules that need to
+be scanned. The list of jar files that will be scanned depends on the
+<code>--add-modules</code> option.</p>
+<p>For both the <code>--class-path</code> and <code>--module-path</code>
+options, <em>path</em> should be a search path that consists of one or
+more jar files, separated by the system-specific path separator. For
+example:</p>
+<ul>
+<li><p><strong>Linux and macOS:</strong></p>
+<blockquote>
+<p><code>--class-path /some/foo.jar:/another/different/bar.jar</code></p>
+</blockquote></li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>On Windows, use a semicolon (<code>;</code>) as the separator instead
+of a colon (<code>:</code>).</p>
+<ul>
+<li><p><strong>Windows:</strong></p>
+<blockquote>
+<p><code>--class-path C:\some\foo.jar;C:\another\different\bar.jar</code></p>
+</blockquote></li>
+</ul>
+</dd>
+<dt><code>--add-modules</code> <em>module[,module...]</em></dt>
+<dd>
+Used to specify a comma-separated list of module names that indicate the
+root modules to scan. All the root modules will be scanned, as well as
+any modules that they depend on. This includes dependencies on service
+implementations specified through the <code>uses</code> directive in a
+module's <code>module-info</code> file. All modules found on the module
+path that provide an implementation of such a service will be scanned as
+well.
+</dd>
+<dt><code>--release</code> <em>version</em></dt>
+<dd>
+Used to specify the Java SE release that specifies the set of restricted
+methods to scan for. For multi-release jar files, this option also
+indicates the version of class file that should be loaded from the jar.
+This option should be set to the version of the runtime under which the
+application is eventually intended to be run. If this flag is omitted,
+the version of <code>jnativescan</code> is used as release version,
+which is the same as the version of the JDK that the tool belongs to.
+</dd>
+<dt><code>--print-native-access</code></dt>
+<dd>
+Print a comma-separated list of module names that use native
+functionalities, instead of the default tree structure.
+</dd>
+<dt><code>--help</code> or <code>-h</code></dt>
+<dd>
+Prints out a full help message.
+</dd>
+<dt><code>--version</code></dt>
+<dd>
+Prints out the abbreviated version string of the tool.
+</dd>
+</dl>
+<h2 id="example-of-jnativescan-use">Example of <code>jnativescan</code>
+use</h2>
+<p><code>jnativescan</code> accepts a runtime configuration in the form
+of a class path, module path, set of root modules, and a target release
+version. For the class path, the tool will scan all jar files, including
+those found recursively through the <code>Class-Path</code> manifest
+attribute. For the module path, the tool scans all root modules
+specified through <code>--add-modules</code>, and any (transitive)
+dependence of the root modules, including any modules that contain
+service implementations that are used by a scanned module.</p>
+<p>By default, the tool prints out which jars, classes, and methods use
+native functionalities, in a tree-like structure. The following is an
+example output:</p>
+<pre><code>$ jnativescan --class-path app.jar
+app.jar (ALL-UNNAMED):
+  foo.Main:
+    foo.Main::main(String[])void references restricted methods:
+      java.lang.foreign.MemorySegment::reinterpret(long)MemorySegment
+    foo.Main::nativeMethod()void is a native method declaration</code></pre>
+<p><code>app.jar (ALL-UNNAMED)</code> is the path to the jar file, with
+the module name in parentheses behind it. Since in this case the jar
+file appears on the class path, <code>ALL-UNNAMED</code> is printed to
+indicate the unnamed module. The second line of the output,
+<code>foo.Main</code>, indicates that methods using native
+functionalities were found in the <code>foo.Main</code> class. The next
+line:</p>
+<pre><code>    foo.Main::main(String[])void references restricted methods:</code></pre>
+<p>Indicates that the <code>main(String[])</code> method in the
+<code>foo.Main</code> class references a restricted method, which is
+listed on the following line as:</p>
+<pre><code>      java.lang.foreign.MemorySegment::reinterpret(long)MemorySegment</code></pre>
+<p>Lastly, the text:</p>
+<pre><code>    foo.Main::nativeMethod()void is a native method declaration</code></pre>
+<p>Indicates that the <code>foo.Main</code> class contains a declaration
+of a <code>native</code> method named <code>nativeMethod</code>.</p>
+<p>If we add <code>--print-native-access</code> to the example command
+line, we instead get a list of the names of modules that contain
+accesses to native functionalities:</p>
+<pre><code>$ jnativescan --class-path app.jar --print-native-access
+ALL-UNNAMED</code></pre>
+<p>In this case the output consists of just <code>ALL-UNNAMED</code>,
+which indicates a jar file on the class path, that is, in the unnamed
+module, contains an access to native functionalities.</p>
+</main><footer class="legal-footer"><hr/><a href="../../legal/copyright.html">Copyright</a> &copy; 1993, 2026, Oracle and/or its affiliates, 500 Oracle Parkway, Redwood Shores, CA 94065 USA.<br>All rights reserved. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java25speclicense.html">license terms</a> and the <a href="https://www.oracle.com/technetwork/java/redist-137594.html">documentation redistribution policy</a>. <!-- Version 25.0.4+7-LTS-189 --></footer>
+</body>
+</html>

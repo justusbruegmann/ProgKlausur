@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc,fixuphtml" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Java Remote Method Invocation: 10 - RMI Wire Protocol</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="../../resources/jdk-default.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+
+<header id="title-block-header">
+<div class="navbar"><div><strong>Java SE 25 & JDK 25</strong></div><nav><ul><li><a href="../../api/index.html">API</a>
+<li><a href="../index.html">OTHER SPECIFICATIONS</a>
+<li><a href="../man/index.html">TOOL GUIDES</a></ul></nav></div>
+
+<h1 class="title">Java Remote Method Invocation: 10 - RMI Wire
+Protocol</h1>
+</header>
+<main><ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#rmi-transport-protocol">RMI Transport Protocol</a></li>
+<li><a href="#rmis-use-of-object-serialization">RMI's Use of Object
+Serialization</a></li>
+<li><a href="#rmis-use-of-http-post-protocol">RMI's Use of HTTP POST
+Protocol</a></li>
+<li><a href="#application-specific-values-for-rmi">Application-Specific
+Values for RMI</a></li>
+</ul>
+<hr />
+<h2 id="overview">10.1 Overview</h2>
+<p>The RMI protocol makes use of two other protocols for its on-the-wire
+format: Java Object Serialization and HTTP. The Object Serialization
+protocol is used to marshal call and return data. The HTTP protocol is
+used to "POST" a remote method invocation and obtain return data when
+circumstances warrant. Each protocol is documented as a separate
+grammar. Nonterminal symbols in production rules may refer to rules
+governed by another protocol (either Object Serialization or HTTP). When
+a protocol boundary is crossed, subsequent productions use that embedded
+protocol.</p>
+<h3 id="notes-about-grammar-notation">Notes about Grammar Notation</h3>
+<ul>
+<li>We use a similar notation to that used in <em>The Java Language
+Specification</em>.</li>
+<li>Control codes in the stream are represented by literal values
+expressed in hexadecimal.</li>
+<li>Some nonterminal symbols in the grammar represent application
+specific values supplied in a method invocation. The definition of such
+a nonterminal consists of its Java programming language type. A table
+mapping each of these nonterminals to its respective type follows the
+grammar.</li>
+</ul>
+<h2 id="rmi-transport-protocol">10.2 RMI Transport Protocol</h2>
+<p>The wire format for RMI is represented by a <code>Stream</code>. The
+terminology adopted here reflects a client perspective. <code>Out</code>
+refers to output messages and <code>In</code> refers to input messages.
+The contents of the transport header are <em>not</em> formatted using
+object serialization.</p>
+<pre><code>Stream:
+    Out
+    In</code></pre>
+<p>The input and output streams used by RMI are paired. Each
+<code>Out</code> stream has a corresponding <code>In</code> stream. An
+<code>Out</code> stream in the grammar maps to the output stream of a
+socket (from the client's perspective). An <code>In</code> stream (in
+the grammar) is paired with the corresponding socket's input stream.
+Since output and input streams are paired, the only header information
+needed on an input stream is an acknowledgment as to whether the
+protocol is understood; other header information (such as the magic
+number and version number) can be implied by the context of stream
+pairing.</p>
+<h3 id="format-of-an-output-stream">10.2.1 Format of an Output
+Stream</h3>
+<p>An output stream in RMI consists of transport <code>Header</code>
+information followed by a sequence of <code>Messages</code>.
+Alternatively, an output stream can contain an invocation embedded in
+the HTTP protocol.</p>
+<pre><code>Out:
+    Header Messages
+    HttpMessage
+
+Header:
+    0x4a 0x52 0x4d 0x49 Version Protocol
+
+Version:
+    0x00 0x01
+
+Protocol:
+    StreamProtocol
+    SingleOpProtocol
+
+StreamProtocol:
+    0x4b
+
+SingleOpProtocol:
+    0x4c
+
+Messages:
+    Message
+    Messages Message</code></pre>
+<p>The <code>Messages</code> are wrapped within a particular protocol as
+specified by <code>Protocol</code>. For the
+<code>SingleOpProtocol</code>, there may only be one
+<code>Message</code> after the <code>Header</code>, and there is no
+additional data that the <code>Message</code> is wrapped in. The
+<code>SingleOpProtocol</code> is used for invocation embedded in HTTP
+requests, where interaction beyond a single request and response is not
+possible.</p>
+<p>For the <code>StreamProtocol</code> the server must respond with a
+byte <code>0x4e</code> acknowledging support for the protocol, and an
+<code>EndpointIdentifier</code> that contains the host name and port
+number that the server can see is being used by the client. The client
+can use this information to determine its host name if it is otherwise
+unable to do that for security reasons. The client must then respond
+with another <code>EndpointIdentifier</code> that contains the client's
+default endpoint for accepting connections.</p>
+<p>For the <code>StreamProtocol</code>, after this endpoint negotiation,
+the <code>Messages</code> are sent over the output stream without any
+additional wrapping of the data.</p>
+<p>There are three types of output messages: <code>Call</code>,
+<code>Ping</code> and <code>DgcAck</code>. A <code>Call</code> encodes a
+method invocation. A <code>Ping</code> is a transport-level message for
+testing liveness of a remote virtual machine. A <code>DgcAck</code> is
+an acknowledgment directed to a server's distributed garbage collector
+that indicates that remote objects in a return value from a server have
+been received by the client.</p>
+<pre><code>Message:
+    Call
+    Ping
+    DgcAck
+
+Call:
+    0x50 CallData
+
+Ping:
+    0x52
+
+DgcAck:
+    0x54 UniqueIdentifier</code></pre>
+<p>Note: The obsolete <code>Protocol</code>
+<code>MultiplexProtocol (0x4d)</code> has been removed as of Java SE
+9.</p>
+<h3 id="format-of-an-input-stream">10.2.2 Format of an Input Stream</h3>
+<p>There are currently three types of input messages:
+<code>ReturnData</code>, <code>HttpReturn</code> and
+<code>PingAck</code>. <code>ReturnData</code> is the result of a
+"normal" RMI call. An <code>HttpReturn</code> is a return result from an
+invocation embedded in the HTTP protocol. A <code>PingAck</code> is the
+acknowledgment for a <code>Ping</code> message.</p>
+<pre><code>In:
+    ProtocolAck Returns
+    ProtocolNotSupported
+    HttpReturn
+
+ProtocolAck:
+    0x4e
+
+ProtocolNotSupported:
+    0x4f
+
+Returns:
+    Return
+    Returns Return
+
+Return:
+    ReturnData
+    PingAck
+
+ReturnData:
+    0x51 ReturnValue
+
+PingAck:
+    0x53</code></pre>
+<h2 id="rmis-use-of-object-serialization">10.3 RMI's Use of Object
+Serialization</h2>
+<p>Call and return data in RMI calls are formatted using the Java Object
+Serialization protocol. Each method invocation's <code>CallData</code>
+is written to a Java object output stream that contains the
+<code>ObjectIdentifier</code> (the target of the call), an
+<code>Operation</code> (a number representing the method to be invoked),
+a <code>Hash</code> (a number that verifies that client stub and remote
+object skeleton use the same stub protocol), followed by a list of zero
+or more <code>Arguments</code> for the call.</p>
+<p>In the JDK1.1 stub protocol the <code>Operation</code> represents the
+method number as assigned by <code>rmic,</code> and the
+<code>Hash</code> was the stub/skeleton hash which is the stub's
+interface hash. As of the Java 2 stub protocol (Java 2 stubs are
+generated using the <code>-v1.2</code> option with <code>rmic</code>),
+<code>Operation</code> has the value -1 and the <code>Hash</code> is a
+hash representing the method to call. The hash is described in the
+section <a href="stubs.html#the-remoteref-interface">"The
+<code>RemoteRef</code> Interface"</a>.</p>
+<pre><code>CallData:
+    ObjectIdentifier Operation Hash Arguments[opt]
+    ObjectIdentifier:
+    ObjectNumber UniqueIdentifier
+
+UniqueIdentifier:
+    Number Time Count
+
+Arguments:
+    Value
+    Arguments Value
+
+Value:
+    Object
+    Primitive</code></pre>
+<p>A <code>ReturnValue</code> of an RMI call consists of a return code
+to indicate either a normal or exceptional return, a
+<code>UniqueIdentifier</code> to tag the return value (used to send a
+<code>DGCAck</code> if necessary) followed by the return result: either
+the <code>Value</code> returned or the <code>Exception</code>
+thrown.</p>
+<pre><code>ReturnValue:
+    0x01 UniqueIdentifier Value[opt]
+    0x02 UniqueIdentifier Exception</code></pre>
+<p><strong>Note:</strong> <code>ObjectIdentifier</code>,
+<code>UniqueIdentifier,</code> and <code>EndpointIdentifier</code> are
+not written out using default serialization, but each uses its own
+special <code>write</code> method (this is not the
+<code>writeObject</code> method used by object serialization); the
+<code>write</code> method for each type of identifier adds its component
+data consecutively to the output stream.</p>
+<h3 id="class-annotation-and-class-loading">10.3.1 Class Annotation and
+Class Loading</h3>
+<p>RMI overrides the <code>annotateClass</code> and
+<code>resolveClass</code> methods of <code>ObjectOutputStream</code> and
+<code>ObjectInputStream</code> respectively. Each class is annotated
+with the codebase URL (the location from which the class can be loaded).
+In the <code>annotateClass</code> method, the classloader that loaded
+the class is queried for its codebase URL. If the classloader is
+non-<code>null</code> and the classloader has a non-<code>null</code>
+codebase, then the codebase is written to the stream using the
+<code>ObjectOutputStream.writeObject</code> method; otherwise a
+<code>null</code> is written to the stream using the
+<code>writeObject</code> method. Note: as an optimization, classes in
+the "<code>java</code>" package are not annotated, since they are always
+available to the receiver.</p>
+<p>The class annotation is resolved during deserialization using the
+<code>ObjectInputStream.resolveClass</code> method. The
+<code>resolveClass</code> method first reads the annotation via the
+<code>ObjectInputStream.readObject</code> method. If the annotation, a
+codebase URL, is non-<code>null</code>, then it obtains the classloader
+for that URL and attempts to load the class.</p>
+<h2 id="rmis-use-of-http-post-protocol">10.4 RMI's Use of HTTP POST
+Protocol</h2>
+<p>The implementation of RMI calls through firewalls via proxies has
+been removed as of JDK 9.</p>
+<h2 id="application-specific-values-for-rmi">10.5 Application-Specific
+Values for RMI</h2>
+<p>This table lists the nonterminal symbols that represent
+application-specific values used by RMI. The table maps each symbol to
+its respective type. Each is formatted using the protocol in which it is
+embedded.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Count</code></th>
+<td style="text-align: left;"><code>short</code></td>
+</tr>
+<tr class="even">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Exception</code></th>
+<td style="text-align: left;"><code>java.lang.Exception</code></td>
+</tr>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Hash</code></th>
+<td style="text-align: left;"><code>long</code></td>
+</tr>
+<tr class="even">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Hostname</code></th>
+<td style="text-align: left;"><code>UTF</code></td>
+</tr>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Number</code></th>
+<td style="text-align: left;"><code>int</code></td>
+</tr>
+<tr class="even">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Object</code></th>
+<td style="text-align: left;"><code>java.lang.Object</code></td>
+</tr>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>ObjectNumber</code></th>
+<td style="text-align: left;"><code>long</code></td>
+</tr>
+<tr class="even">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Operation</code></th>
+<td style="text-align: left;"><code>int</code></td>
+</tr>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>PortNumber</code></th>
+<td style="text-align: left;"><code>int</code></td>
+</tr>
+<tr class="even">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Primitive</code></th>
+<td style="text-align: left;"><code>byte</code>, <code>int</code>,
+<code>short</code>, <code>long</code> ...</td>
+</tr>
+<tr class="odd">
+<th style="font-weight: normal; text-align: left;" scope="row"><code>Time</code></th>
+<td style="text-align: left;"><code>long</code></td>
+</tr>
+</tbody>
+</table>
+</main><footer class="legal-footer"><hr/><a href="../../legal/copyright.html">Copyright</a> &copy; 1993, 2026, Oracle and/or its affiliates, 500 Oracle Parkway, Redwood Shores, CA 94065 USA.<br>All rights reserved. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java25speclicense.html">license terms</a> and the <a href="https://www.oracle.com/technetwork/java/redist-137594.html">documentation redistribution policy</a>. <!-- Version 25.0.4+7-LTS-189 --></footer>
+</body>
+</html>

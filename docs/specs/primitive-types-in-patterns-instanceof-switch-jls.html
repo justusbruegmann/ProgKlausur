@@ -1,0 +1,2927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc,fixuphtml" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Primitive types in patterns, instanceof, and switch (Third Preview)</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="../resources/jdk-default.css" />
+  <link rel="stylesheet" href="../resources/spec-changes.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+
+<header id="title-block-header">
+<div class="navbar"><div><strong>Java SE 25 & JDK 25</strong></div><nav><ul><li><a href="../api/index.html">API</a>
+<li><a href="index.html">OTHER SPECIFICATIONS</a>
+<li><a href="man/index.html">TOOL GUIDES</a></ul></nav></div>
+
+<h1 class="title">Primitive types in patterns, instanceof, and switch
+(Third Preview)</h1>
+<p class="subtitle">Changes to the Java® Language Specification •
+Version 25.0.4+7-LTS-189</p>
+</header>
+<nav id="TOC" role="doc-toc" title="Table Of Contents">
+<ul>
+<li><a href="#jls-1" id="toc-jls-1">Chapter 1: Introduction</a>
+<ul>
+<li><a href="#jls-1.4" id="toc-jls-1.4">1.4 Relationship to Predefined
+Classes and Interfaces</a></li>
+</ul></li>
+<li><a href="#jls-5" id="toc-jls-5">Chapter 5: Conversions and
+Contexts</a>
+<ul>
+<li><a href="#jls-5.1" id="toc-jls-5.1">5.1 Kinds of Conversion</a>
+<ul>
+<li><a href="#jls-5.1.2" id="toc-jls-5.1.2">5.1.2 Widening Primitive
+Conversion</a></li>
+<li><a href="#jls-5.1.3" id="toc-jls-5.1.3">5.1.3 Narrowing Primitive
+Conversion</a></li>
+</ul></li>
+<li><a href="#jls-5.5" id="toc-jls-5.5">5.5 Casting Contexts</a></li>
+<li><a href="#jls-5.7" id="toc-jls-5.7">5.7 Testing Contexts</a>
+<ul>
+<li><a href="#jls-5.7.1" id="toc-jls-5.7.1"><strong>5.7.1 Exact Testing
+Conversions</strong></a></li>
+<li><a href="#jls-5.7.2" id="toc-jls-5.7.2"><strong>5.7.2
+Unconditionally Exact Testing Conversions</strong></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#jls-14" id="toc-jls-14">Chapter 14: Blocks, Statements,
+and Patterns</a>
+<ul>
+<li><a href="#jls-14.11" id="toc-jls-14.11">14.11 The
+<code>switch</code> Statement</a>
+<ul>
+<li><a href="#jls-14.11.1" id="toc-jls-14.11.1">14.11.1 Switch
+Blocks</a></li>
+<li><a href="#jls-14.11.2" id="toc-jls-14.11.2">14.11.2 The Switch Block
+of a <code>switch</code> Statement</a></li>
+</ul></li>
+<li><a href="#jls-14.30" id="toc-jls-14.30">14.30 Patterns</a>
+<ul>
+<li><a href="#jls-14.30.1" id="toc-jls-14.30.1">14.30.1 Kinds of
+Patterns</a></li>
+<li><a href="#jls-14.30.2" id="toc-jls-14.30.2">14.30.2 Pattern
+Matching</a></li>
+<li><a href="#jls-14.30.3" id="toc-jls-14.30.3">14.30.3 Properties of
+Patterns</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#jls-15" id="toc-jls-15">Chapter 15: Expressions</a>
+<ul>
+<li><a href="#jls-15.5" id="toc-jls-15.5">15.5 Expressions and Run-Time
+Checks</a></li>
+<li><a href="#jls-15.16" id="toc-jls-15.16">15.16 Cast
+Expressions</a></li>
+<li><a href="#jls-15.20" id="toc-jls-15.20">15.20 Relational
+Operators</a>
+<ul>
+<li><a href="#jls-15.20.2" id="toc-jls-15.20.2">15.20.2 The
+<code>instanceof</code> Operator</a></li>
+</ul></li>
+<li><a href="#jls-15.28" id="toc-jls-15.28">15.28 <code>switch</code>
+Expressions</a></li>
+</ul></li>
+<li><a href="#jls-19" id="toc-jls-19">Chapter 19: Syntax</a></li>
+</ul>
+</nav>
+<main><p>This document describes changes to the <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html">Java Language
+Specification</a> to support primitive types to pattern matching of
+<code>instanceof</code>, which is a preview feature of Java SE 25. See
+<a href="https://openjdk.org/jeps/507">JEP:507</a> for overview of the
+feature.</p>
+<p>Changes are described with respect to existing sections of the JLS.
+New text is indicated <strong>like this</strong> and deleted text is
+indicated <del>like this</del>. Explanation and discussion, as needed,
+is set aside in grey boxes.</p>
+<div class="editorial">
+<p>Changelog:</p>
+<p>2025-04-29: Update links and dates. Fix typo. No changes.</p>
+</div>
+<h2 id="jls-1">Chapter 1: Introduction</h2>
+<h3 id="jls-1.4">1.4 Relationship to Predefined Classes and
+Interfaces</h3>
+<p>As noted above, this specification often refers to classes and
+interfaces of the Java SE Platform API. In particular, some classes and
+interfaces have a special relationship with the Java programming
+language. Examples include classes such as <code>Object</code>,
+<code>Class</code>, <code>ClassLoader</code>, <code>String</code>, and
+<code>Thread</code><del>,</del><strong>; the class
+<code>java.math.BigDecimal</code>; the interface
+<code>java.io.Serializable</code>;</strong> and the classes and
+interfaces in the package <code>java.lang.reflect</code>, among others.
+This specification constrains the behavior of such classes and
+interfaces, but does not provide a complete specification for them. The
+reader is referred to the Java SE Platform API documentation.</p>
+<p>Consequently, this specification does not describe reflection in any
+detail. Many linguistic constructs have analogs in the Core Reflection
+API (<code>java.lang.reflect</code>) and the Language Model API
+(<code>javax.lang.model</code>), but these are generally not discussed
+here. For example, when we list the ways in which an object can be
+created, we generally do not include the ways in which the Core
+Reflection API can accomplish this. Readers should be aware of these
+additional mechanisms even though they are not mentioned in the
+text.</p>
+<h2 id="jls-5">Chapter 5: Conversions and Contexts</h2>
+<p>Every expression written in the Java programming language either
+produces no result (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.1">15.1</a>)
+or has a type that can be deduced at compile time (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.3">15.3</a>).
+When an expression appears in most contexts, it must be
+<em>compatible</em> with a type expected in that context; this type is
+called the <em>target type</em>. For convenience, compatibility of an
+expression with its surrounding context is facilitated in two ways:</p>
+<ul>
+<li><p>First, for some expressions, termed <em>poly expressions</em> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.2">15.2</a>),
+the deduced type can be influenced by the target type. The same
+expression can have different types in different contexts.</p></li>
+<li><p>Second, after the type of the expression has been deduced, an
+implicit <em>conversion</em> from the type of the expression to the
+target type can sometimes be performed.</p></li>
+</ul>
+<p>If neither strategy is able to produce the appropriate type, a
+compile-time error occurs.</p>
+<p>The rules determining whether an expression is a poly expression, and
+if so, its type and compatibility in a particular context, vary
+depending on the kind of context and the form of the expression. In
+addition to influencing the type of the expression, the target type may
+in some cases influence the run time behavior of the expression in order
+to produce a value of the appropriate type.</p>
+<p>Similarly, the rules determining whether a target type allows an
+implicit conversion vary depending on the kind of context, the type of
+the expression, and, in one special case, the value of a constant
+expression (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.29">15.29</a>).
+A conversion from type <em>S</em> to type <em>T</em> allows an
+expression of type <em>S</em> to be treated at compile time as if it had
+type <em>T</em> instead. In some cases this will require a corresponding
+action at run time to check the validity of the conversion or to
+translate the run-time value of the expression into a form appropriate
+for the new type <em>T</em>.</p>
+<div class="example">
+<p>Example 5.0-1. Conversions at Compile Time and Run Time</p>
+<ul>
+<li><p>A conversion from type <code>Object</code> to type
+<code>Thread</code> requires a run-time check to make sure that the
+run-time value is actually an instance of class <code>Thread</code> or
+one of its subclasses; if it is not, an exception is thrown.</p></li>
+<li><p>A conversion from type <code>Thread</code> to type
+<code>Object</code> requires no run-time action; <code>Thread</code> is
+a subclass of <code>Object</code>, so any reference produced by an
+expression of type <code>Thread</code> is a valid reference value of
+type <code>Object</code>.</p></li>
+<li><p>A conversion from type <code>int</code> to type <code>long</code>
+requires run-time sign-extension of a 32-bit integer value to the 64-bit
+<code>long</code> representation. No information is lost.</p></li>
+<li><p>A conversion from type <code>double</code> to type
+<code>long</code> requires a non-trivial translation from a 64-bit
+floating-point value to the 64-bit integer representation. Depending on
+the actual run-time value, information may be lost.</p></li>
+</ul>
+</div>
+<p>The conversions possible in the Java programming language are grouped
+into several broad categories:</p>
+<ul>
+<li>Identity conversions</li>
+<li>Widening primitive conversions</li>
+<li>Narrowing primitive conversions</li>
+<li>Widening reference conversions</li>
+<li>Narrowing reference conversions</li>
+<li>Boxing conversions</li>
+<li>Unboxing conversions</li>
+<li>Unchecked conversions</li>
+<li>Capture conversions</li>
+<li>String conversions</li>
+</ul>
+<p>There are seven kinds of <em>conversion contexts</em> in which poly
+expressions may be influenced by context or implicit conversions may
+occur. Each kind of context has different rules for poly expression
+typing and allows conversions in some of the categories above but not
+others. The contexts are:</p>
+<ul>
+<li><p>Assignment contexts (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.2">5.2</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.26">15.26</a>),
+in which an expression's value is bound to a named variable. Primitive
+and reference types are subject to widening, values may be boxed or
+unboxed, and some primitive constant expressions may be subject to
+narrowing. An unchecked conversion may also occur.</p></li>
+<li><p>Strict invocation contexts (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.3">5.3</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.9">15.9</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.12">15.12</a>),
+in which an argument is bound to a formal parameter of a constructor or
+method. Widening primitive, widening reference, and unchecked
+conversions may occur.</p></li>
+<li><p>Loose invocation contexts (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.3">5.3</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.9">15.9</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.12">15.12</a>),
+in which, like strict invocation contexts, an argument is bound to a
+formal parameter. Method or constructor invocations may provide this
+context if no applicable declaration can be found using only strict
+invocation contexts. In addition to widening and unchecked conversions,
+this context allows boxing and unboxing conversions to occur.</p></li>
+<li><p>String contexts (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.4">5.4</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.18.1">15.18.1</a>),
+in which a value of any type is converted to an object of type
+<code>String</code>.</p></li>
+<li><p>Casting contexts (<a href="#jls-5.5">5.5</a>), in which an
+expression's value is converted to a type explicitly specified by a cast
+operator (<a href="#jls-15.16">15.16</a>). Casting contexts are more
+inclusive than assignment or loose invocation contexts, allowing any
+specific conversion other than a string conversion, but certain casts to
+a reference type are checked for correctness at run time.</p></li>
+<li><p>Numeric contexts (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.6">5.6</a>),
+in which the operands of a numeric operator or some other expressions
+that operate on numbers may be widened to a common type.</p></li>
+<li><p>Testing contexts (<a href="#jls-5.7">5.7</a>), in which an
+expression's value is <strong>compared and possibly</strong> converted
+to a type explicitly specified by <strong>the type comparison operator
+(<a href="#jls-15.20.2">15.20.2</a>) or</strong> <del>a pattern (<a
+href="#jls-14.30">14.30</a>)</del> <strong>pattern matching (<a
+href="#jls-14.30.2">14.30.2</a>)</strong>. Testing contexts are more
+inclusive than assignment or loose invocation contexts, but not as
+inclusive as casting contexts.</p></li>
+</ul>
+<p>The term "conversion" is also used to describe, without being
+specific, any conversions allowed in a particular context. For example,
+we say that an expression that is the initializer of a local variable is
+subject to "assignment conversion", meaning that a specific conversion
+will be implicitly chosen for that expression according to the rules for
+the assignment context. As another example, we say that an expression
+undergoes "casting conversion" to mean that the expression's type will
+be converted as permitted in a casting context.</p>
+<div class="example">
+<p>Example 5.0-2. Conversions In Various Contexts</p>
+<pre><code>class Test {
+    public static void main(String[] args) {
+        // Casting conversion (5.5) of a float literal to
+        // type int. Without the cast operator, this would
+        // be a compile-time error, because this is a
+        // narrowing conversion (5.1.3):
+        int i = (int)12.5f;
+
+        // String conversion (5.4) of i&#39;s int value:
+        System.out.println(&quot;(int)12.5f==&quot; + i);
+
+        // Assignment conversion (5.2) of i&#39;s value to type
+        // float. This is a widening conversion (5.1.2):
+        float f = i;
+
+        // String conversion of f&#39;s float value:
+        System.out.println(&quot;after float widening: &quot; + f);
+
+        // Numeric promotion (5.6) of i&#39;s value to type
+        // float. This is a binary numeric promotion.
+        // After promotion, the operation is float*float:
+        System.out.print(f);
+        f = f * i;
+
+        // Two string conversions of i and f:
+        System.out.println(&quot;*&quot; + i + &quot;==&quot; + f);
+
+        // Invocation conversion (5.3) of f&#39;s value
+        // to type double, needed because the method Math.sin
+        // accepts only a double argument:
+        double d = Math.sin(f);
+
+        // Two string conversions of f and d:
+        System.out.println(&quot;Math.sin(&quot; + f + &quot;)==&quot; + d);
+    }
+}</code></pre>
+<p>This program produces the output:</p>
+<pre><code>(int)12.5f==12
+after float widening: 12.0
+12.0*12==144.0
+Math.sin(144.0)==-0.49102159389846934</code></pre>
+</div>
+<h3 id="jls-5.1">5.1 Kinds of Conversion</h3>
+<h4 id="jls-5.1.2">5.1.2 Widening Primitive Conversion</h4>
+<p>19 specific conversions on primitive types are called the
+<em>widening primitive conversions</em>:</p>
+<ul>
+<li><p><code>byte</code> to <code>short</code>, <code>int</code>,
+<code>long</code>, <code>float</code>, or <code>double</code></p></li>
+<li><p><code>short</code> to <code>int</code>, <code>long</code>,
+<code>float</code>, or <code>double</code></p></li>
+<li><p><code>char</code> to <code>int</code>, <code>long</code>,
+<code>float</code>, or <code>double</code></p></li>
+<li><p><code>int</code> to <code>long</code>, <code>float</code>, or
+<code>double</code></p></li>
+<li><p><code>long</code> to <code>float</code> or
+<code>double</code></p></li>
+<li><p><code>float</code> to <code>double</code></p></li>
+</ul>
+<p>A widening primitive conversion <strong>that</strong> does not lose
+information about the overall magnitude of a numeric value <del>in the
+following cases, where the numeric value is preserved
+exactly</del><strong>is called an <em>exact widening primitive
+conversion</em> and the numeric value is preserved exactly. Such a
+conversion can be one of the following</strong>:</p>
+<ul>
+<li><p>from an integral type to another integral type</p></li>
+<li><p>from <code>byte</code>, <code>short</code>, or <code>char</code>
+to a floating-point type</p></li>
+<li><p>from <code>int</code> to <code>double</code></p></li>
+<li><p>from <code>float</code> to <code>double</code></p></li>
+</ul>
+<p>A widening primitive conversion from <code>int</code> to
+<code>float</code>, or from <code>long</code> to <code>float</code>, or
+from <code>long</code> to <code>double</code>, may result in <em>loss of
+precision</em>, that is, the result may lose some of the least
+significant bits of the value. In this case, the resulting
+floating-point value will be a correctly rounded version of the integer
+value, using the round to nearest rounding policy (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.4">15.4</a>).</p>
+<p>A widening conversion of a signed integer value to an integral type
+<em>T</em> simply sign-extends the two's-complement representation of
+the integer value to fill the wider format.</p>
+<p>A widening conversion of a <code>char</code> to an integral type
+<em>T</em> zero-extends the representation of the <code>char</code>
+value to fill the wider format.</p>
+<p>A widening conversion from <code>int</code> to <code>float</code>, or
+from <code>long</code> to <code>float</code>, or from <code>int</code>
+to <code>double</code>, or from <code>long</code> to <code>double</code>
+occurs as determined by the rules of IEEE 754 for converting from an
+integer format to a binary floating-point format.</p>
+<p>A widening conversion from <code>float</code> to <code>double</code>
+occurs as determined by the rules of IEEE 754 for converting between
+binary floating-point formats.</p>
+<p>Despite the fact that loss of precision may occur, a widening
+primitive conversion never results in a run-time exception (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-11.html#jls-11.1.1">11.1.1</a>).</p>
+<div class="example">
+<p>Example 5.1.2-1. Widening Primitive Conversion</p>
+<pre><code>class Test {
+    public static void main(String[] args) {
+        int big = 1234567890;
+        float approx = big;
+        System.out.println(big - (int)approx);
+    }
+}</code></pre>
+<p>This program prints:</p>
+<pre><code>-46</code></pre>
+<p>thus indicating that information was lost during the conversion from
+type <code>int</code> to type <code>float</code> because values of type
+<code>float</code> are not precise to nine significant digits.</p>
+</div>
+<h4 id="jls-5.1.3">5.1.3 Narrowing Primitive Conversion</h4>
+<p>22 specific conversions on primitive types are called the
+<em>narrowing primitive conversions</em>:</p>
+<ul>
+<li><p><code>short</code> to <code>byte</code> or
+<code>char</code></p></li>
+<li><p><code>char</code> to <code>byte</code> or
+<code>short</code></p></li>
+<li><p><code>int</code> to <code>byte</code>, <code>short</code>, or
+<code>char</code></p></li>
+<li><p><code>long</code> to <code>byte</code>, <code>short</code>,
+<code>char</code>, or <code>int</code></p></li>
+<li><p><code>float</code> to <code>byte</code>, <code>short</code>,
+<code>char</code>, <code>int</code>, or <code>long</code></p></li>
+<li><p><code>double</code> to <code>byte</code>, <code>short</code>,
+<code>char</code>, <code>int</code>, <code>long</code>, or
+<code>float</code></p></li>
+</ul>
+<p>A narrowing primitive conversion may lose information about the
+overall magnitude of a numeric value, and may also lose precision and
+range.</p>
+<p>A narrowing conversion of a signed integer to an integral type
+<em>T</em> simply discards all but the <em>n</em> lowest order bits,
+where <em>n</em> is the number of bits used to represent type
+<em>T</em>. In addition to a possible loss of information about the
+magnitude of the numeric value, this may cause the sign of the resulting
+value to differ from the sign of the input value.</p>
+<p>A narrowing conversion of a <code>char</code> to an integral type
+<em>T</em> likewise simply discards all but the <em>n</em> lowest order
+bits, where <em>n</em> is the number of bits used to represent type
+<em>T</em>. In addition to a possible loss of information about the
+magnitude of the numeric value, this may cause the resulting value to be
+a negative number, even though chars represent 16-bit unsigned integer
+values.</p>
+<p>A narrowing conversion of a floating-point number to an integral type
+<em>T</em> takes two steps:</p>
+<ol type="1">
+<li><p>In the first step, the floating-point number is converted either
+to a <code>long</code>, if <em>T</em> is <code>long</code>, or to an
+<code>int</code>, if <em>T</em> is <code>byte</code>,
+<code>short</code>, <code>char</code>, or <code>int</code>, as
+follows:</p>
+<ul>
+<li><p>If the floating-point number is NaN (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.2.3">4.2.3</a>),
+the result of the first step of the conversion is an <code>int</code> or
+<code>long</code> <code>0</code>.</p></li>
+<li><p>Otherwise, if the floating-point number is not an infinity, the
+floating-point value is rounded to an integer value <em>V</em> using the
+round toward zero rounding policy (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.2.4">4.2.4</a>).
+Then there are two cases:</p>
+<ol type="1">
+<li><p>If <em>T</em> is <code>long</code>, and this integer value can be
+represented as a <code>long</code>, then the result of the first step is
+the <code>long</code> value <em>V</em>.</p></li>
+<li><p>Otherwise, if this integer value can be represented as an
+<code>int</code>, then the result of the first step is the
+<code>int</code> value <em>V</em>.</p></li>
+</ol></li>
+<li><p>Otherwise, one of the following two cases must be true:</p>
+<ol type="1">
+<li><p>The value must be too small (a negative value of large magnitude
+or negative infinity), and the result of the first step is the smallest
+representable value of type <code>int</code> or
+<code>long</code>.</p></li>
+<li><p>The value must be too large (a positive value of large magnitude
+or positive infinity), and the result of the first step is the largest
+representable value of type <code>int</code> or
+<code>long</code>.</p></li>
+</ol></li>
+</ul></li>
+<li><p>In the second step:</p>
+<ul>
+<li><p>If <em>T</em> is <code>int</code> or <code>long</code>, the
+result of the conversion is the result of the first step.</p></li>
+<li><p>If <em>T</em> is <code>byte</code>, <code>char</code>, or
+<code>short</code>, the result of the conversion is the result of a
+narrowing conversion to type <em>T</em> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.3">5.1.3</a>)
+of the result of the first step.</p></li>
+</ul></li>
+</ol>
+<p>A narrowing conversion from <code>double</code> to <code>float</code>
+occurs as determined by the rules of IEEE 754 for converting between
+binary floating-point formats, using the round to nearest rounding
+policy (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.4">15.4</a>).
+This conversion can lose precision, but also lose range, resulting in a
+<code>float</code> zero from a nonzero <code>double</code> and a
+<code>float</code> infinity from a finite <code>double</code>. A
+<code>double</code> NaN is converted to a <code>float</code> NaN and a
+<code>double</code> infinity is converted to the same-signed
+<code>float</code> infinity.</p>
+<div class="inserted">
+<blockquote>
+<p>There are several pairs of types that are represented using the same
+number of bits: <code>char</code> and <code>short</code>,
+<code>int</code> and <code>float</code>, and <code>long</code> and
+<code>double</code>. Converting from one type to another where they are
+both represented by the same number of bits may lose information because
+the bits are used differently by different types. For example,
+<code>char</code> and <code>short</code> are both integral types
+represented using 16 bits. Because conversions in both directions can
+lose information, a narrowing conversion is provided both for
+<code>char</code> to <code>short</code> and <code>short</code> to
+<code>char</code>. Because <code>char</code> is unsigned and
+<code>short</code> is signed, narrowing <code>char</code> to
+<code>short</code> or <code>short</code> to <code>char</code> may lose
+magnitude. Converting <code>Character.MAX_VALUE</code> (65535) to
+<code>short</code> gives -1 ((2<sup>16</sup> - 1) - 2<sup>16</sup>).
+Converting a <code>short</code> value of -1 to <code>char</code> gives
+65535 (2<sup>16</sup> - 1). Because every <code>int</code> value can be
+converted to a <code>float</code> value of closely similar magnitude
+(the resulting numeric value after the conversion may lose only some of
+the <em>least</em> significant bits of the value), we classify the
+conversion from <code>int</code> to <code>float</code> as widening (for
+example converting the <code>int</code> 123456789 to <code>float</code>
+rounds up to 123456792, losing precision). A narrowing conversion is
+provided from <code>float</code> to <code>int</code>, because larger
+<code>float</code> values can lose most of their magnitude, when
+approximated as <code>int</code> values (for example converting the
+<code>Float.MAX_VALUE</code> to <code>int</code> results in 2147483647,
+a significantly smaller numerical value in magnitude).</p>
+</blockquote>
+</div>
+<p>Despite the fact that overflow, underflow, or other loss of
+information may occur, a narrowing primitive conversion never results in
+a run-time exception (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-11.html#jls-11.1.1">11.1.1</a>).</p>
+<div class="example">
+<p>Example 5.1.3-1. Narrowing Primitive Conversion</p>
+<pre><code>class Test {
+    public static void main(String[] args) {
+        float fmin = Float.NEGATIVE_INFINITY;
+        float fmax = Float.POSITIVE_INFINITY;
+        System.out.println(&quot;long: &quot; + (long)fmin +
+                           &quot;..&quot; + (long)fmax);
+        System.out.println(&quot;int: &quot; + (int)fmin +
+                           &quot;..&quot; + (int)fmax);
+        System.out.println(&quot;short: &quot; + (short)fmin +
+                           &quot;..&quot; + (short)fmax);
+        System.out.println(&quot;char: &quot; + (int)(char)fmin +
+                           &quot;..&quot; + (int)(char)fmax);
+        System.out.println(&quot;byte: &quot; + (byte)fmin +
+                           &quot;..&quot; + (byte)fmax);
+    }
+}</code></pre>
+<p>This program produces the output:</p>
+<pre><code>long: -9223372036854775808..9223372036854775807
+int: -2147483648..2147483647
+short: 0..-1
+char: 0..65535
+byte: 0..-1</code></pre>
+<p>The results for <code>char</code>, <code>int</code>, and
+<code>long</code> are unsurprising, producing the minimum and maximum
+representable values of the type.</p>
+<p>The results for <code>byte</code> and <code>short</code> lose
+information about the sign and magnitude of the numeric values and also
+lose precision. The results can be understood by examining the low order
+bits of the minimum and maximum <code>int</code>. The minimum
+<code>int</code> is, in hexadecimal, <code>0x80000000</code>, and the
+maximum int is <code>0x7fffffff</code>. This explains the
+<code>short</code> results, which are the low 16 bits of these values,
+namely, <code>0x0000</code> and <code>0xffff</code>; it explains the
+char results, which also are the low 16 bits of these values, namely,
+<code>'\u0000'</code> and <code>'\uffff'</code>; and it explains the
+byte results, which are the low 8 bits of these values, namely,
+<code>0x00</code> and <code>0xff</code>.</p>
+</div>
+<div class="example">
+<p>Example 5.1.3-2. Narrowing Primitive Conversions that lose
+information</p>
+<pre><code>class Test {
+    public static void main(String[] args) {
+        // A narrowing of int to short loses high bits:
+        System.out.println(&quot;(short)0x12345678==0x&quot; +
+                           Integer.toHexString((short)0x12345678));
+        // An int value too big for byte changes sign and magnitude:
+        System.out.println(&quot;(byte)255==&quot; + (byte)255);
+        // A float value too big to fit gives largest int value:
+        System.out.println(&quot;(int)1e20f==&quot; + (int)1e20f);
+        // A NaN converted to int yields zero:
+        System.out.println(&quot;(int)NaN==&quot; + (int)Float.NaN);
+        // A double value too large for float yields infinity:
+        System.out.println(&quot;(float)-1e100==&quot; + (float)-1e100);
+        // A double value too small for float underflows to zero:
+        System.out.println(&quot;(float)1e-50==&quot; + (float)1e-50);
+    }
+}</code></pre>
+<p>This program produces the output:</p>
+<pre><code>(short)0x12345678==0x5678
+(byte)255==-1
+(int)1e20f==2147483647
+(int)NaN==0
+(float)-1e100==-Infinity
+(float)1e-50==0.0</code></pre>
+</div>
+<h3 id="jls-5.5">5.5 Casting Contexts</h3>
+<p><em>Casting contexts</em> allow the operand of a cast expression (<a
+href="#jls-15.16">15.16</a>) to be converted to the type explicitly
+named by the cast operator. Compared to assignment contexts and
+invocation contexts, casting contexts allow the use of more of the
+conversions defined in <a href="#jls-5.1">5.1</a>, and allow more
+combinations of those conversions.</p>
+<p>If the expression is of a primitive type, then a casting context
+allows the use of one of the following:</p>
+<ul>
+<li><p>an identity conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.1">5.1.1</a>)</p></li>
+<li><p>a widening primitive conversion (<a
+href="#jls-5.1.2">5.1.2</a>)</p></li>
+<li><p>a narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.3">5.1.3</a>)</p></li>
+<li><p>a widening and narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.4">5.1.4</a>)</p></li>
+<li><p>a boxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.7">5.1.7</a>)</p></li>
+<li><p>a boxing conversion followed by a widening reference conversion
+(<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.5">5.1.5</a>)</p></li>
+</ul>
+<p>If the expression is of a reference type, then a casting context
+allows the use of one of the following:</p>
+<ul>
+<li><p>an identity conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.1">5.1.1</a>)</p></li>
+<li><p>a widening reference conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.5">5.1.5</a>)</p></li>
+<li><p>a widening reference conversion followed by an unboxing
+conversion</p></li>
+<li><p>a widening reference conversion followed by an unboxing
+conversion, then followed by a widening primitive conversion</p></li>
+<li><p>a narrowing reference conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6">5.1.6</a>)</p></li>
+<li><p>a narrowing reference conversion followed by an unboxing
+conversion</p></li>
+<li><p>an unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>)</p></li>
+<li><p>an unboxing conversion followed by a widening primitive
+conversion</p></li>
+</ul>
+<p>If the expression has the null type, then the expression may be cast
+to any reference type.</p>
+<p>If a casting context makes use of a narrowing reference conversion
+that is checked or partially unchecked (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6.2">5.1.6.2</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6.3">5.1.6.3</a>),
+then <del>a run time check will be performed</del><strong>the conversion
+performs a validity check at run time</strong> on the class of the
+expression's value, possibly causing a <code>ClassCastException</code>.
+Otherwise, <del>no run time check is performed</del><strong>no validity
+check is performed at run time, although other actions may be performed
+at run time</strong>.</p>
+<div class="editorial">
+<p>Editorial: The rest of section 5.5 is unchanged.</p>
+</div>
+<h3 id="jls-5.7">5.7 Testing Contexts</h3>
+<p><strong>Testing contexts arise for expressions when a value of one
+type is to be compared and possibly converted to another type.</strong>
+<strong>Testing contexts allow the operand of a type comparison operator
+(<a href="#jls-15.20.2">15.20.2</a>) to be compared to another
+type.</strong> Testing contexts <strong>also</strong> allow the operand
+of a pattern match operator (<a href="#jls-15.20.2">15.20.2</a>), or the
+selector expression of a <code>switch</code> expression or statement
+that has at least one pattern <code>case</code> label associated with
+its switch block (<a href="#jls-14.11.1">14.11.1</a>) to be
+<strong>compared and</strong> converted to a type as part of the process
+of pattern matching. As pattern matching is an inherently conditional
+process (<a href="#jls-14.30.2">14.30.2</a>), it is expected that a
+testing context will make use of conversions that may fail <strong>or
+lose information</strong> at run time.</p>
+<p>Testing contexts use similar conversions <del>for reference
+types</del> as casting contexts except that they do not permit narrowing
+reference conversions that are unchecked (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6.2">5.1.6.2</a>).</p>
+<p>If the expression is of a primitive type, then a testing context
+allows the use of <del>an identity conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.1">5.1.1</a>).</del><strong>one
+of the following:</strong></p>
+<div class="inserted">
+<ul>
+<li><p>an identity conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.1">5.1.1</a>)</p></li>
+<li><p>a widening primitive conversion (<a
+href="#jls-5.1.2">5.1.2</a>)</p></li>
+<li><p>a narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.3">5.1.3</a>)</p></li>
+<li><p>a widening and narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.4">5.1.4</a>)</p></li>
+<li><p>a boxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.7">5.1.7</a>)</p></li>
+<li><p>a boxing conversion followed by a widening reference conversion
+(<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.5">5.1.5</a>)</p></li>
+</ul>
+</div>
+<p>If the expression is of a reference type, then a testing context
+allows the use of one of the following:</p>
+<ul>
+<li><p>an identity conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.1">5.1.1</a>)</p></li>
+<li><p>a widening reference conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.5">5.1.5</a>)</p></li>
+</ul>
+<div class="inserted">
+<ul>
+<li><p>a widening reference conversion followed by an unboxing
+conversion</p></li>
+<li><p>a widening reference conversion followed by an unboxing
+conversion, then followed by a widening primitive conversion</p></li>
+</ul>
+</div>
+<ul>
+<li>a narrowing reference conversion that is checked (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6.2">5.1.6.2</a>)</li>
+</ul>
+<div class="inserted">
+<ul>
+<li><p>a narrowing reference conversion that is checked followed by an
+unboxing conversion</p></li>
+<li><p>an unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>)</p></li>
+<li><p>an unboxing conversion followed by a widening primitive
+conversion</p></li>
+</ul>
+</div>
+<p>If the expression has the null type, then the expression may be
+converted to any reference type.</p>
+<div class="deleted">
+<p>If a testing context makes use of a narrowing reference conversion,
+then a run time check will be performed on the class of the expression's
+value, possibly causing a <code>ClassCastException</code>.</p>
+</div>
+<div class="inserted">
+<p>Whether there is a testing conversion from type <em>S</em> to type
+<em>T</em> is distinct from whether a value of type <em>S</em> can be
+converted to type <em>T</em> without loss of information. For example,
+there is a testing conversion from <code>int</code> to
+<code>byte</code>, and from <code>Object</code> to <code>String</code>,
+but there are many <code>int</code> values that cannot be represented as
+a <code>byte</code>, and there are many <code>Object</code> values that
+do not refer to instances of <code>String</code>. The run-time process
+of pattern matching is sensitive to whether loss of information occurs,
+so it relies on the notion of a testing conversion being exact for a
+given value.</p>
+<!-- If a testing context makes use of a narrowing reference conversion that is
+checked ([5.1.6.2], [5.1.6.3]), then the conversion performs a validity check at
+run time on the class of the expression's value. Otherwise, no validity check is
+performed at run time, although other actions may be performed at run time. -->
+</div>
+<section id="jls-5.7.1" class="inserted">
+<h4><strong>5.7.1 Exact Testing Conversions</strong></h4>
+<p>A testing conversion of a value is <em>exact</em> if it yields a
+result without loss of information or throwing an exception. Otherwise,
+it is <em>inexact</em>.</p>
+<p>Loss of information can occur during either a widening primitive
+conversion that is not exact (<a href="#jls-5.1.2">5.1.2</a>), or a
+narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.3">5.1.3</a>),
+or a widening and narrowing primitive conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.4">5.1.4</a>).
+The loss can take one or more of the following forms:</p>
+<ul>
+<li>loss of magnitude (a primitive value's distance from zero)</li>
+<li>loss of precision (a primitive value's least significant bits)</li>
+<li>loss of range (a primitive value's <code>MIN_VALUE</code> and
+<code>MAX_VALUE</code>)</li>
+<li>loss of sign (a primitive value appears with a flipped sign after
+the conversion, or no sign at all)</li>
+</ul>
+<blockquote>
+<p>Applying one of these conversions may lead to loss of information
+that in turn is a potential source of bugs. For example, if the
+<code>int</code> variable <code>i</code> stores the value
+<code>1000</code> then a narrowing primitive conversion to
+<code>byte</code> will yield the result <code>-24</code>. Loss of
+information has occurred: both the magnitude and the sign of the result
+are different than those of the original value. As such, a conversion
+from <code>int</code> to <code>byte</code> for the value
+<code>1000</code> is inexact. In contrast, a conversion from
+<code>int</code> to <code>byte</code> for the value <code>10</code> is
+exact because the result, <code>10</code>, is the same as the original
+value.</p>
+</blockquote>
+<p>An exception can occur during either a narrowing reference conversion
+that is checked (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.6.2">5.1.6.2</a>),
+or an unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>).</p>
+<p>A run time check is needed to determine whether a conversion causes
+loss of information or throws an exception. If the check determines that
+no loss of information occurs, or no exception is thrown, then the
+conversion is exact. Otherwise the conversion is inexact, and its result
+or exception is discarded as if the conversion had never occurred.</p>
+<p>If a testing conversion consists of more than one conversion, then if
+all such conversions are exact then the testing conversion is exact;
+otherwise the testing conversion is inexact.</p>
+<p>The run time check to determine whether the conversion of a value
+from a primitive type <em>S</em> to a primitive type <em>T</em> loses
+information is non-obvious. The obvious way to check for loss of
+information would be to convert the value from <em>S</em> to <em>T</em>,
+then convert the result from <em>T</em> back to <em>S</em>, then compare
+that final result with the original value. However, this "round trip"
+conversion from <em>S</em> to <em>T</em> and back to <em>S</em> would be
+misleading because it would be possible for the final result to equal
+the original value even if the original conversion of the value from
+<em>S</em> to <em>T</em> was inexact.</p>
+<!--
+1. C is exact   AND C' is exact   => C o C' is exact
+2. C is inexact AND C' is inexact => C o C' is exact
+3. C is exact   AND C' is inexact => C o C' is exact   (e.g., (byte)(int) b)
+4. C is inexact AND C' is exact   => C o C' is inexact (e.g., (int)(byte) i)
+-->
+<blockquote>
+<p>As an example, consider the conversion of
+<code>Integer.MAX_VALUE</code> from <code>int</code> to
+<code>float</code>, with result <code>y</code>. This conversion is
+inexact due to the round to nearest rounding policy: loss of precision
+occurs (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.4">15.4</a>).
+Converting <code>y</code> back to <code>int</code>, with result
+<code>z</code>, is also inexact due to the round toward zero rounding
+policy (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.2.4">4.2.4</a>).
+In this case, <code>z</code> is equal to the original value
+<code>Integer.MAX_VALUE</code>, but it would be erroneous to conclude
+that the original conversion of <code>Integer.MAX_VALUE</code> from
+<code>int</code> to <code>float</code> preserved all information.</p>
+</blockquote>
+<blockquote>
+<p>As another example, consider the conversion of
+<code>Character.MAX_VALUE</code> from <code>char</code> to
+<code>short</code>. This conversion narrows an unsigned 16-bit value,
+65535, to a signed 16-bit value, -1. The conversion is inexact because
+loss of magnitude occurs: the <code>char</code> value is 65535 integral
+values away from zero while the <code>short</code> value is only one
+integral value away from zero. Converting the <code>short</code> value
+back to <code>char</code> is also inexact. It narrows a signed 16-bit
+value, -1, to an unsigned 16-bit value, 65535, so loss of magnitude
+occurs again. Even though 65535 is equal to the original value
+<code>Character.MAX_VALUE</code>, it would be erroneous to conclude that
+the original conversion of <code>Character.MAX_VALUE</code> from
+<code>char</code> to <code>short</code> preserved all information.</p>
+</blockquote>
+<p>The safe but non-obvious way to check for loss of information is to
+convert the value from <em>S</em> to <em>T</em>, then promote both the
+result and the original value to a type capable of representing all the
+values of <em>S</em> and <em>T</em>. This type is known as the
+<em>exactly promoted type</em>. If the original conversion from
+<em>S</em> to <em>T</em> lost information then the two promoted values
+will compare as unequal, revealing the loss of information. There is no
+possibility of the original conversion's inexactness being cancelled out
+by the inexactness of another conversion, as can happen with a "round
+trip".</p>
+<p>For a testing conversion from a primitive type <em>S</em> to a
+primitive type <em>T</em>, the <em>exactly promoted type</em> is
+determined as follows:</p>
+<ul>
+<li><p>If <em>S</em> and <em>T</em> are the same primitive type, then
+the exactly promoted type is <em>S</em>.</p></li>
+<li><p>If <em>S</em> is <code>byte</code> or <code>short</code> and
+<em>T</em> is <code>char</code>, or vice versa, then the exactly
+promoted type is <code>int</code>.</p></li>
+<li><p>If <em>S</em> is <code>int</code> and <em>T</em> is
+<code>float</code>, or vice versa, then the exactly promoted type is
+<code>double</code>.</p></li>
+<li><p>If <em>S</em> is <code>long</code> and <em>T</em> is
+<code>float</code> or <code>double</code>, or vice versa, then the
+exactly promoted type is <a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/math/BigDecimal.html">java.math.BigDecimal</a>.</p></li>
+<li><p>Otherwise, the exactly promoted type is the <em>wider</em> of
+<em>S</em> and <em>T</em>. A type <em>A</em> is wider than a type
+<em>B</em> if there is a widening primitive conversion from <em>B</em>
+to <em>A</em> (<a href="#jls-5.1.2">5.1.2</a>).</p></li>
+</ul>
+<p>Let <em>C</em> be a testing conversion of a value <em>v</em> from a
+primitive type <em>S</em> to a primitive type <em>T</em>. Then one of
+the following holds:</p>
+<ul>
+<li><p>If <em>S</em> and <em>T</em> are both floating-point types, and
+<em>v</em> is either a zero, or an infinity, or a <code>NaN</code>, then
+<em>C</em> is exact.</p></li>
+<li><p>If <em>S</em> is a floating-point type, <em>T</em> is an integral
+type, and <em>v</em> is either negative zero, or an infinity, or a
+<code>NaN</code>, then <em>C</em> is inexact.</p>
+<blockquote>
+<p>For example, if <em>v</em> is a floating-point negative zero that is
+converted to an integral type, then the result is zero. Relative to the
+original value, the result has lost information: the sign.</p>
+</blockquote>
+<!-- > Signed zeros, infinities, and `NaN` require special handling since
+> [java.math.BigDecimal], which is one of the possible promoted types, does
+> not model those kinds of values. --></li>
+<li><p>Otherwise, let <em>P</em> denote the exactly promoted type of
+<em>S</em> and <em>T</em>, and let <em>w</em> denote the result of the
+conversion <em>C</em>. Then:</p>
+<ul>
+<li><p>Let <em>x</em> denote the result of the conversion <em>D</em> of
+the value <em>v</em> from <em>S</em> to <em>P</em>, computed as
+follows:</p>
+<ul>
+<li><p>If <em>P</em> is a primitive type, <em>x</em> is the result of a
+casting conversion from <em>S</em> to <em>P</em>.</p></li>
+<li><p>If <em>P</em> is <a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/math/BigDecimal.html">java.math.BigDecimal</a>,
+<em>x</em> is the result obtained as if by execution of
+<code>new BigDecimal(v)</code>.</p></li>
+</ul></li>
+<li><p>Let <em>y</em> denote the result of the conversion <em>E</em> of
+the value <em>w</em> from <em>T</em> to <em>P</em>, computed as
+follows:</p>
+<ul>
+<li><p>If <em>P</em> is a primitive type, <em>y</em> is the result of a
+casting conversion from <em>T</em> to <em>P</em>.</p></li>
+<li><p>If <em>P</em> is <a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/math/BigDecimal.html">java.math.BigDecimal</a>,
+<em>y</em> is the result obtained as if by execution of
+<code>new BigDecimal(w)</code>.</p></li>
+</ul></li>
+</ul>
+<p><em>C</em> is exact if one of the following holds:</p>
+<ul>
+<li><p><em>P</em> is an integral type and <em>x</em> and <em>y</em> are
+equal according to the numerical equality operator <code>==</code> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.21.1">15.21.1</a>).</p></li>
+<li><p><em>P</em> is a floating-point type and <em>x</em> and <em>y</em>
+are equal according to the result obtained as if by execution of
+<code>Double.compare(x, y) == 0</code> (<a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/Double.html#compare(double,double)">java.lang.Double.compare</a>).</p></li>
+<li><p><em>P</em> is <a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/math/BigDecimal.html">java.math.BigDecimal</a>
+and <em>x</em> and <em>y</em> are equal according to the result obtained
+as if by execution of <code>x.compareTo(y) == 0</code> (<a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/math/BigDecimal.html#compareTo(java.math.BigDecimal)">java.math.BigDecimal.compareTo</a>).</p></li>
+</ul>
+<p>Otherwise, <em>C</em> is inexact.</p>
+<blockquote>
+<p>The following diagram gives an overview of the conversions
+<em>C</em>, <em>D</em> and <em>E</em>:</p>
+<pre><code>x -- equal? -- y
+(P)            (P)
+|              |
+^              ^
+D              E
+^              ^
+|              |
+v ---- C ----&gt; w
+(S)            (T)</code></pre>
+</blockquote></li>
+</ul>
+<div class="example">
+<p>Example 5.7.1-1. Exact Testing Conversion of Primitive Types</p>
+<p>Consider the conversion from the source type <code>byte</code> to the
+target type <code>char</code>. The exactly promoted type of these two
+types is <code>int</code>. The run time check to determine whether the
+conversion of a <code>byte</code> value <code>x</code> to a
+<code>char</code> is exact, is given by the following equation:</p>
+<pre><code>(int)(char) x == (int) x</code></pre>
+<p>The rationale of using the exactly promoted type and not a round-trip
+cast to check for loss of information is, as discussed above, that a
+round-trip cast does not always reveal the potential loss of
+information. For example, using the round-trip cast to determine whether
+the conversion of the <code>byte</code> value <code>x</code> to a
+<code>char</code> is exact leads to the following equation:</p>
+<pre><code>(byte)(char) x == x</code></pre>
+<p>For the following maximum allowed value of <code>x</code>, the
+round-trip cast would evaluate to <code>true</code>:</p>
+<pre><code>byte x = 127
+(byte)(char) x == x // evaluates to true</code></pre>
+<p>For the following minimum allowed value of <code>x</code>, the
+round-trip cast would also evalue to true, erroneously:</p>
+<pre><code>byte x = -128
+(byte)(char) x == x // also evaluates to true</code></pre>
+<p>The first cast conversion <code>(char) x</code> evaluates to 'ﾀ',
+which is the character whose representation is <code>65408</code>. And
+when <code>65408</code> is cast back, via a second cast conversion
+to <code>byte</code>, the result is <code>-128</code> again and the
+equality operator evaluates to <code>true</code>:</p>
+<pre><code>(byte)(char) x // evaluates to -128</code></pre>
+<p>However, the numerical value of <code>-128</code> is not the same
+with the numerical value of <code>65408</code> but due to modulo
+arithmetic the result of the second conversion is the same number as the
+original value of <code>x</code>. As an unfortunate result of this, a
+user would erroneously deduce that the original value was preserved and
+that the conversion of <code>x</code> to <code>char</code> would be
+safe; the user would have lost the original information applying this
+conversion.</p>
+<p>For that reason, the exactly promoted type is used so that a
+conversion of both the original value <code>x</code> and of the
+converted value <code>(char) x</code> to the exactly promoted type
+<code>int</code> (a wider type), reveals, correctly, that the two values
+are different. Thus, such a conversion would be inexact.</p>
+</div>
+</section>
+<section id="jls-5.7.2" class="inserted">
+<h4><strong>5.7.2 Unconditionally Exact Testing
+Conversions</strong></h4>
+<p>Most conversions allowed in a testing context are exact or inexact
+depending on the value that is converted at run time. However, some
+conversions are always exact regardless of the value. These conversions
+are said to be <em>unconditionally exact</em>. It is known at compile
+time that an unconditionally exact conversion will yield a result at run
+time without loss of information or throwing an exception. The
+unconditionally exact conversions are:</p>
+<ul>
+<li><p>an identity conversion</p></li>
+<li><p>an exact widening primitive conversion</p></li>
+<li><p>a widening reference conversion</p></li>
+<li><p>a boxing conversion</p></li>
+<li><p>a boxing conversion followed by a widening reference
+conversion</p></li>
+</ul>
+<blockquote>
+<p>For example, a widening primitive conversion from <code>byte</code>
+to <code>int</code> is unconditionally exact because it will always
+succeed with no loss of information about the magnitude of the numeric
+value.</p>
+</blockquote>
+<blockquote>
+<p>Some of these conversions require action at run time, and in the case
+of a boxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.7">5.1.7</a>)
+may even fail with an <code>OutOfMemoryError</code>. However, the
+run-time behavior does not affect whether the conversion is
+unconditionally exact.</p>
+</blockquote>
+<blockquote>
+<p>Unconditional exactness is used at compile time to check the
+dominance of one pattern over another in a switch block (<a
+href="#jls-14.11.1">14.11.1</a>), and whether a switch block as a whole
+is exhaustive (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.11.1.1">14.11.1.1</a>).</p>
+</blockquote>
+</section>
+<h2 id="jls-14">Chapter 14: Blocks, Statements, and Patterns</h2>
+<h3 id="jls-14.11">14.11 The <code>switch</code> Statement</h3>
+<p>The <code>switch</code> statement transfers control to one of several
+statements or expressions, depending on the value of an expression.</p>
+<dl>
+<dt><em>SwitchStatement:</em></dt>
+<dd>
+<code>switch</code> <code>(</code> <em>Expression</em> <code>)</code>
+<em>SwitchBlock</em>
+</dd>
+</dl>
+<p>The <em>Expression</em> is called the <em>selector expression</em>.
+The type of the selector expression <del>must be <code>char</code>,
+<code>byte</code>, <code>short</code>, <code>int</code>, or a reference
+type, or a compile-time error occurs</del><strong>may be any
+type.</strong></p>
+<div class="inserted">
+<blockquote>
+<p>The types allowed for a selector expression have been expanded over
+the years. Java 1.0 supported <code>byte</code>, <code>short</code>,
+<code>char</code>, <code>int</code> selector types. In Java SE 5.0
+autoboxing was introduced, so switch was expanded to support the wrapper
+classes <code>Byte</code>, <code>Short</code>, <code>Character</code>,
+<code>Integer</code>, alongside enumerations. In Java SE 7,
+<code>String</code> was added. In Java SE 21, reference types were added
+(preserving the existing support for primitives) to account for pattern
+matching with type patterns in case labels. Java SE 25 supports all
+primitive types and their boxes, extending support with
+<code>case</code> constants to allow longs, floats, etc.; lifting all
+restrictions on the values that can be compared and pattern matched via
+<code>switch</code> and <code>instanceof</code> (<a
+href="#jls-15.20.2">15.20.2</a>) allows performing data exploration
+uniformly.</p>
+</blockquote>
+</div>
+<h4 id="jls-14.11.1">14.11.1 Switch Blocks</h4>
+<p>The body of both a <code>switch</code> statement and a
+<code>switch</code> expression (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.28">15.28</a>)
+is called a <em>switch block</em>. This subsection presents general
+rules which apply to all switch blocks, whether they appear in
+<code>switch</code> statements or <code>switch</code> expressions. Other
+subsections present additional rules which apply either to switch blocks
+in <code>switch</code> statements (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.11.2">14.11.2</a>)
+or to switch blocks in <code>switch</code> expressions (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.28.1">15.28.1</a>).</p>
+<dl>
+<dt><em>SwitchBlock:</em></dt>
+<dd>
+<code>{</code> <em>SwitchRule</em> {<em>SwitchRule</em>} <code>}</code>
+</dd>
+<dd>
+<code>{</code> {<em>SwitchBlockStatementGroup</em>}
+{<em>SwitchLabel</em> <code>:</code>} <code>}</code>
+</dd>
+<dt><em>SwitchRule:</em></dt>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>Expression</em>
+<code>;</code>
+</dd>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>Block</em>
+</dd>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>ThrowStatement</em>
+</dd>
+<dt><em>SwitchBlockStatementGroup:</em></dt>
+<dd>
+<em>SwitchLabel</em> <code>:</code> {<em>SwitchLabel</em>
+<code>:</code>} <em>BlockStatements</em>
+</dd>
+<dt><em>SwitchLabel:</em></dt>
+<dd>
+<code>case</code> <em>CaseConstant</em> {<code>,</code>
+<em>CaseConstant</em>}
+</dd>
+<dd>
+<code>case</code> <code>null</code> [<code>,</code>
+<code>default</code>]
+</dd>
+<dd>
+<code>case</code> <em>CasePattern</em> {<code>,</code>
+<em>CasePattern</em>} [<em>Guard</em>]
+</dd>
+<dd>
+<code>default</code>
+</dd>
+<dt><em>CaseConstant:</em></dt>
+<dd>
+<em>ConditionalExpression</em>
+</dd>
+<dt><em>CasePattern:</em></dt>
+<dd>
+<em>Pattern</em>
+</dd>
+<dt><em>Guard:</em></dt>
+<dd>
+<code>when</code> <em>Expression</em>
+</dd>
+</dl>
+<p>A switch block can consist of either:</p>
+<ul>
+<li><p><em>Switch rules</em>, which use <code>-&gt;</code> to introduce
+either a <em>switch rule expression</em>, a <em>switch rule block</em>,
+or a <em>switch rule <code>throw</code> statement</em>; or</p></li>
+<li><p><em>Switch labeled statement groups</em>, which use
+<code>:</code> to introduce <em>switch labeled block
+statements</em>.</p></li>
+</ul>
+<p>Every switch rule and switch labeled statement group starts with a
+<em>switch label</em>, which is either a <code>case</code> label or a
+<code>default</code> label. Multiple switch labels are permitted for a
+switch labeled statement group.</p>
+<p>A <code>case</code> label has either a (non-empty) list of
+<code>case</code> constants, a <code>null</code> literal, or a
+(non-empty) list of <code>case</code> patterns.</p>
+<p>Every <code>case</code> constant must be either a constant expression
+(<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.29">15.29</a>),
+or the name of an enum constant (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.9.1">8.9.1</a>),
+otherwise a compile-time error occurs.</p>
+<p>A <code>case</code> label with a <code>null</code> literal may have
+an optional <code>default</code>.</p>
+<p>A <code>case</code> label with <code>case</code> patterns may have an
+optional <code>when</code> expression, known as a <em>guard</em>, which
+represents a further test on values that match the patterns. A
+<code>case</code> label is said to be <em>unguarded</em> if either (i)
+it has no guard, or (ii) it has a guard that is a constant expression
+(<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.29">15.29</a>)
+with value <code>true</code>; and <em>guarded</em> otherwise.</p>
+<p>It is a compile-time error for a <code>case</code> label to have more
+than one <code>case</code> pattern and declare any pattern variables
+(other than those declared by a guard associated with the
+<code>case</code> label).</p>
+<blockquote>
+<p>If a <code>case</code> label with more than one <code>case</code>
+pattern could declare pattern variables, then it would not be clear
+which variables would be initialized if the <code>case</code> label were
+to apply. For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object obj = ...;
+switch (obj) {
+  case Integer i, Boolean b -&gt; {
+    ...       // Error! Is i or b initialized?
+  }
+  ...
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>Even if only one of the <code>case</code> patterns declares a pattern
+variable, it would still not be clear whether the variable was
+initialized or not; for example:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object obj = ...;
+switch (obj) {
+  case Integer i, Boolean _ -&gt; {
+    ...       // Error! Is i initialized?
+  }
+  ...
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>The following does not result in a compile-time error:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object obj = ...;
+switch (obj) {
+  case Integer _, Boolean _ -&gt; {
+    ...       // Matches both an Integer and a Boolean
+  }
+  ...
+}</code></pre>
+</blockquote>
+<p>Switch labels and their <code>case</code> constants,
+<code>null</code> literals, and <code>case</code> patterns are said to
+be <em>associated</em> with the switch block.</p>
+<p>For a given switch block <del>both</del><strong>all</strong> of the
+following must be true, otherwise a compile-time error occurs:</p>
+<ul>
+<li><p>No two of the <code>case</code> constants associated with a
+switch block may have the same value.</p></li>
+<li><p>No more than one <code>null</code> literal may be associated with
+a switch block.</p></li>
+<li><p>No more than one <code>default</code> label may be associated
+with a switch block.</p></li>
+</ul>
+<p>A guard associated with a <code>case</code> label must satisfy all of
+the following conditions, otherwise a compile-time error occurs:</p>
+<ul>
+<li><p>A guard must have type <code>boolean</code> or
+<code>Boolean</code>.</p></li>
+<li><p>Any local variable, formal parameter, or exception parameter used
+but not declared in a guard must either be <code>final</code> or
+effectively final (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.12.4">4.12.4</a>).</p></li>
+<li><p>Any blank <code>final</code> variable used but not declared in a
+guard must be definitely assigned (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-16.html#jls-16">16</a>)
+before the guard.</p></li>
+<li><p>A guard cannot be a constant expression (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.29">15.29</a>)
+with the value <code>false</code>.</p></li>
+</ul>
+<p>The switch block of a <code>switch</code> statement or a
+<code>switch</code> expression is <em>switch compatible</em> with the
+type of the selector expression, <em>T</em>, if all of the following are
+true:</p>
+<ul>
+<li><p>If a <code>null</code> literal is associated with the switch
+block, then <em>T</em> is a reference type.</p></li>
+<li><p>For every <code>case</code> constant associated with the switch
+block that names an enum constant, the type of the <code>case</code>
+constant is assignment compatible with <em>T</em> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.2">5.2</a>).</p></li>
+</ul>
+<div class="deleted">
+<ul>
+<li>For each <code>case</code> constant associated with the switch block
+that is a constant expression, the constant is assignment compatible
+with <em>T</em>, and <em>T</em> is one of <code>char</code>,
+<code>byte</code>, <code>short</code>, <code>int</code>,
+<code>Character</code>, <code>Byte</code>, <code>Short</code>,
+<code>Integer</code>, or <code>String</code>.</li>
+</ul>
+</div>
+<div class="inserted">
+<ul>
+<li><p>For each <code>case</code> constant associated with the switch
+block that is a constant expression, one of the following is true:</p>
+<ul>
+<li><p>if <em>T</em> is one of <code>char</code>, <code>byte</code>,
+<code>short</code>, <code>int</code>, <code>Character</code>,
+<code>Byte</code>, <code>Short</code>, <code>Integer</code>, or
+<code>String</code>, the constant is assignment compatible with
+<em>T</em>.</p></li>
+<li><p>if <em>T</em> is one of <code>long</code>, <code>float</code>,
+<code>double</code>, or <code>boolean</code>, the type of the case
+constant is <em>T</em>.</p></li>
+<li><p>if <em>T</em> is one of <code>Long</code>, <code>Float</code>,
+<code>Double</code>, or <code>Boolean</code>, the type of the case
+constant is, respectively, <code>long</code>, <code>float</code>,
+<code>double</code>, or <code>boolean</code>.</p></li>
+</ul></li>
+</ul>
+<blockquote>
+<p>Note that <code>case</code> constants must be assignment compatible
+with the selector expression, while <code>case</code> patterns allow
+values to be compared and converted in a testing context (<a
+href="#jls-5.7">5.7</a>, <a href="#jls-14.30.3">14.30.3</a>).</p>
+</blockquote>
+<blockquote>
+<p>Prior to Java SE 25, <code>case</code> constants were limited to the
+types given in the first item: <code>char</code>, <code>byte</code>,
+<code>short</code>, etc. Java SE 25 expanded the set of valid
+<code>case</code> constants to allow longs, floats, etc.</p>
+</blockquote>
+<blockquote>
+<p>Note that a selector expression of type <code>long</code>,
+<code>float</code>, or <code>double</code> requires <code>case</code>
+constants that are, respectively, integer literals of type
+<code>long</code> (<code>5L</code>), floating-point literals of type
+<code>float</code> (<code>5f</code>), and floating-point literals of
+type <code>double</code> (<code>5d</code>). Intermixing floating-point
+selector types with integral literals is not allowed. For example a
+widening primitive conversion from <code>int</code> to
+<code>float</code> is lossy. While, a widening primitive conversion from
+<code>int</code> to <code>double</code> is unconditionally exact,
+integer literals are disallowed since mixing implicit and explicit
+conversions in <code>case</code> literals could result in incorrect code
+in case of complex constant expressions.</p>
+</blockquote>
+</div>
+<ul>
+<li>Every pattern <em>p</em> associated with the switch block is
+applicable at type <em>T</em> (<a href="#jls-14.30.3">14.30.3</a>).</li>
+</ul>
+<div class="deleted">
+<blockquote>
+<p>Switch blocks are not designed to work with the types
+<code>boolean</code>, <code>long</code>, <code>float</code>, and
+<code>double</code>. The selector expression of a <code>switch</code>
+statement or <code>switch</code> expression can not have one of these
+types.</p>
+</blockquote>
+</div>
+<p>The switch block of a <code>switch</code> statement or a
+<code>switch</code> expression must be switch compatible with the type
+of the selector expression, or a compile-time error occurs.</p>
+<div class="inserted">
+<p>If the switch block of a <code>switch</code> statement or
+<code>switch</code> expression whose selector expression is of type
+<code>boolean</code> or <code>Boolean</code> has one <code>case</code>
+constant associated with the switch block that names <code>true</code>,
+one that names <code>false</code>, and a <code>default</code> label,
+then a compile-time error occurs.</p>
+</div>
+<p>A switch label in a switch block is said to be <em>dominated</em> if
+for every value that it applies to, it can be determined that one of the
+preceding switch labels would also apply. It is a compile-time error if
+any switch label in a switch block is dominated. The rules for
+determining whether a switch label is dominated are as follows:</p>
+<ul>
+<li><p>A <code>case</code> label with a <code>case</code> pattern
+<em>q</em> is dominated if there is a preceding unguarded
+<code>case</code> label in the switch block with a <code>case</code>
+pattern <em>p</em>, and <em>p</em> dominates <em>q</em> (<a
+href="#jls-14.30.3">14.30.3</a>).</p>
+<blockquote>
+<p>The definition of one pattern dominating another pattern is based on
+types. For example, the type pattern <code>Object</code> <code>o</code>
+dominates the type pattern <code>String</code> <code>s</code>, and so
+the following results in a compile-time error:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object obj = ...
+switch (obj) {
+    case Object o -&gt;
+        System.out.println(&quot;An object&quot;);
+    case String s -&gt;                 // Error!
+        System.out.println(&quot;A string&quot;);
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>A guarded <code>case</code> label with a <code>case</code> pattern is
+dominated by a <code>case</code> label with the same pattern but without
+the guard. For example, the following results in a compile-time
+error:</p>
+</blockquote>
+<blockquote>
+<pre><code>String str = ...;
+switch (str) {
+    case String s -&gt;
+        System.out.println(&quot;A string&quot;);
+    case String s when s.length() == 2 -&gt;  // Error!
+        System.out.println(&quot;Two character string&quot;);
+    ...
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>On the other hand, a guarded <code>case</code> label with a
+<code>case</code> pattern is not considered to dominate an unguarded
+<code>case</code> label with the same <code>case</code> pattern. This
+allows the following common pattern programming style:</p>
+</blockquote>
+<blockquote>
+<pre><code>Integer j = ...;
+switch (j) {
+    case Integer i when i &lt;= 0 -&gt;
+        System.out.println(&quot;Less than or equal to zero&quot;);
+    case Integer i -&gt;
+        System.out.println(&quot;An integer&quot;);
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>The only exception is where the guard is a constant expression that
+has the value <code>true</code>, for example:</p>
+</blockquote>
+<blockquote>
+<pre><code>Integer j = ...;
+switch (j) {
+    case Integer i when true -&gt;            // Ok
+        System.out.println(&quot;An integer&quot;);
+    case Integer i -&gt;                      // Error!
+        System.out.println(&quot;An integer&quot;);
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>A <code>case</code> label with more than one <code>case</code>
+pattern is dominated if any one of these patterns is dominated by a
+pattern that appears as a <code>case</code> pattern in a preceding
+unguarded <code>case</code> label, and so the following results in a
+compile-time error (as the type pattern <code>Integer</code>
+<code>_</code> is dominated by the type pattern <code>Number</code>
+<code>_</code>):</p>
+</blockquote>
+<blockquote>
+<pre><code>    Object obj = ...
+    switch (obj) {
+      case Number _ -&gt;
+        System.out.println(&quot;A Number&quot;);
+      case Integer _, String _ -&gt;       // Error - dominated!
+        System.out.println(&quot;An Integer or a String&quot;);
+      ...
+    }</code></pre>
+</blockquote></li>
+<li><p>A <code>case</code> label with a <code>case</code> constant
+<em>c</em> is dominated if one of the following holds:</p>
+<ul>
+<li><p><em>c</em> is a constant expression of a primitive type
+<em>S</em>, and there is a preceding <code>case</code> label in the
+switch block with an unguarded <code>case</code> pattern <em>p</em>,
+where <em>p</em> is unconditional <strong>(<a
+href="#jls-14.30.3">14.30.3</a>)</strong> for the wrapper class of
+<em>S</em>.</p></li>
+<li><p><em>c</em> is a constant expression of a reference type
+<em>T</em>, and there is a preceding <code>case</code> label in the
+switch block with an unguarded <code>case</code> pattern <em>p</em>,
+where <em>p</em> is unconditional for the type <em>T</em>.</p></li>
+<li><p><em>c</em> names an enum constant of enum class <em>E</em>, and
+there is a preceding <code>case</code> label in the switch block with an
+unguarded <code>case</code> pattern <em>p</em>, where <em>p</em> is
+unconditional for the type <em>E</em>.</p></li>
+</ul>
+<blockquote>
+<p>For example, a <code>case</code> label with an <code>Integer</code>
+type pattern dominates a <code>case</code> label with an integer
+literal:</p>
+</blockquote>
+<blockquote>
+<pre><code>Integer j = ...;
+switch (j) {
+    case Integer i -&gt;
+        System.out.println(&quot;An integer&quot;);
+    case 42 -&gt;                              // Error - dominated!
+        System.out.println(&quot;42!&quot;);
+}</code></pre>
+</blockquote></li>
+<li><p>A <code>default</code> label or a <code>case</code>
+<code>null,</code> <code>default</code> label is dominated if there is a
+preceding unguarded <code>case</code> label in the switch block with a
+<code>case</code> pattern <em>p</em> where <em>p</em> is unconditional
+for the type of the selector expression <del>(<a
+href="#jls-14.30.3">14.30.3</a>)</del>.</p>
+<blockquote>
+<p>A <code>case</code> label with a <code>case</code> pattern that is
+unconditional for the type of the selector expression will, as the name
+suggests, match every value and so behave like a <code>default</code>
+label. A switch block can not have more than one switch label that acts
+like a <code>default</code>.</p>
+</blockquote></li>
+</ul>
+<p>It is a compile-time error if there is a <code>case</code> label with
+<em>n</em> (<em>n</em>&gt;1) <code>case</code> patterns
+<em>p<sub>1</sub></em>, ..., <em>p<sub>n</sub></em> in a switch block
+where one of the patterns <em>p<sub>i</sub></em>
+(1<em>≤i</em>&lt;<em>n</em>) dominates another of the patterns
+<em>p<sub>j</sub></em> (<em>i</em>&lt;<em>j≤n</em>).</p>
+<p>It is a compile-time error if any of the following holds:</p>
+<ul>
+<li><p>There is a <code>default</code> label in the switch block that
+precedes a <code>case</code> label with <code>case</code>
+patterns.</p></li>
+<li><p>There is a <code>default</code> label in the switch block that
+precedes a <code>case</code> label with a <code>null</code>
+literal.</p></li>
+<li><p>There is a <code>case</code> <code>null,</code>
+<code>default</code> label in the switch block followed by any other
+switch label.</p></li>
+</ul>
+<blockquote>
+<p>If used, a <code>default</code> label should come last in a switch
+block.</p>
+</blockquote>
+<blockquote>
+<p>For compatibility reasons, a <code>default</code> label may appear
+before <code>case</code> labels that do not have a <code>null</code>
+literal or <code>case</code> patterns.</p>
+</blockquote>
+<blockquote>
+<pre><code>int i = ...;
+switch(i) {
+    default -&gt;
+        System.out.println(&quot;Some other integer&quot;);
+    case 42 -&gt; // allowed
+        System.out.println(&quot;42&quot;);
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>If used, a <code>case</code> <code>null,</code> <code>default</code>
+label should come last in a switch block.</p>
+</blockquote>
+<p>It is a compile-time error if, in a switch block that consists of
+switch labeled statement groups, a statement is labeled with a
+<code>case</code> label that declares one or more pattern variables
+([6.3.3]), and either:</p>
+<ul>
+<li><p>An immediately preceding statement in the switch block can
+complete normally (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.22">14.22</a>),
+or</p></li>
+<li><p>The statement is labeled with more than one switch
+label.</p></li>
+</ul>
+<blockquote>
+<p>The first condition prevents a statement group from "falling through"
+to another statement group without initializing pattern variables. For
+example, were the statement labeled by <code>case</code>
+<code>Integer</code> <code>i</code> reachable from the preceding
+statement group, the pattern variable <code>i</code> would not have been
+initialized:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object o = &quot;Hello&quot;;
+switch (o) {
+    case String s:
+        System.out.println(&quot;String: &quot; + s );  // No break!
+    case Integer i:
+        System.out.println(i + 1);            // Error! Can be reached
+                                              // without matching the
+                                              // pattern `Integer i`
+    default:
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>Switch blocks consisting of switch label statement groups allow
+multiple labels to apply to a statement group. The second condition
+prevents a statement group from being executed based on one label
+without initializing the pattern variables of another label. For
+example:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object o = &quot;Hello World&quot;;
+switch (o) {
+    case String s:
+    case Integer i:
+        System.out.println(i + 1);  // Error! Can be reached
+                                    // without matching the
+                                    // pattern `Integer i`
+    default:
+}
+Object obj = null;
+switch (obj) {
+    case null:
+    case String s:
+        System.out.println(s);      // Error! Can be reached
+                                    // without matching the
+                                    // pattern `String s`
+    default:
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>Both of these conditions apply only when the <code>case</code>
+pattern declares pattern variables. The following examples, in contrast,
+are unproblematic:</p>
+</blockquote>
+<blockquote>
+<pre><code>record R() {}
+record S() {}
+Object o = &quot;Hello World&quot;;
+switch (o) {
+    case String s:
+        System.out.println(s);      // No break
+    case R():                       // No pattern variables declared
+        System.out.println(&quot;It&#39;s either an R or a string&quot;);
+        break;
+    default:
+}
+Object ob = new R();
+switch (ob) {
+    case R():
+    case S():                       // Multiple case labels
+        System.out.println(&quot;Either R or an S&quot;);
+        break;
+    default:
+}
+Object obj = null;
+switch (obj) {
+    case null:
+    case R():                       // Multiple case labels
+        System.out.println(&quot;Either null or an R&quot;);
+        break;
+    default:
+}</code></pre>
+</blockquote>
+<h5 id="jls-14.11.1.1">14.11.1.1 Exhaustive Switch Blocks</h5>
+<p>The switch block of a <code>switch</code> expression or
+<code>switch</code> statement is <em>exhaustive</em> for a selector
+expression <em>e</em> if one of the following cases applies:</p>
+<ul>
+<li><p>There is a <code>default</code> label associated with the switch
+block.</p></li>
+<li><p>There is a <code>case</code> <code>null,</code>
+<code>default</code> label associated with the switch block.</p></li>
+<li><p>The set containing all the <code>case</code> constants and
+<code>case</code> patterns appearing in an unguarded <code>case</code>
+label (collectively known as <code>case</code> <em>elements</em>)
+associated with the switch block is non-empty and covers the type of the
+selector expression <em>e</em>.</p></li>
+</ul>
+<p>A set of <code>case</code> elements,
+<del><em>P</em></del><strong><em>CE</em></strong>, <em>covers</em> a
+type <em>T</em> if one of the following cases applies:</p>
+<ul>
+<li><p><del><em>P</em></del><strong><em>CE</em></strong> covers a type
+<em>U</em> where <em>T</em> and <em>U</em> have the same
+erasure.</p></li>
+<li><p><del><em>P</em></del><strong><em>CE</em></strong> contains a
+pattern that is unconditional <strong>(<a
+href="#jls-14.30.3">14.30.3</a>)</strong> for <em>T</em>.</p></li>
+<li><p><em>T</em> is a type variable with upper bound <em>B</em> and
+<del><em>P</em></del><strong><em>CE</em></strong> covers
+<em>B</em>.</p></li>
+<li><p><em>T</em> is an intersection type
+<em>T<sub>1</sub></em><code>&amp;</code> ...
+<code>&amp;</code><em>T<sub>n</sub></em> and
+<del><em>P</em></del><strong><em>CE</em></strong> covers
+<em>T<sub>i</sub></em>, for one of the types <em>T<sub>i</sub></em>
+(1<em>≤</em> <em>i</em> <em>≤</em> <em>n</em>).</p></li>
+</ul>
+<div class="inserted">
+<ul>
+<li>The type <em>T</em> is <code>boolean</code> or <code>Boolean</code>
+and <em>CE</em> contains both the constant <code>true</code> and the
+constant <code>false</code>.</li>
+</ul>
+</div>
+<ul>
+<li><p>The type <em>T</em> is an enum class type <em>E</em> and
+<del><em>P</em></del><strong><em>CE</em></strong> contains all of the
+names of the enum constants of <em>E</em>.</p>
+<blockquote>
+<p>A <code>default</code> label is permitted, but not required, in the
+case where the names of all the enum constants appear as
+<code>case</code> constants. For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>enum E { F, G, H }
+static int testEnumExhaustive(E e) {
+  return switch(e) {
+      case F -&gt; 0;
+      case G -&gt; 1;
+      case H -&gt; 2;    // No default required!
+  };
+}</code></pre>
+</blockquote></li>
+</ul>
+<div class="inserted">
+<ul>
+<li><p><em>CE</em> contains a type pattern with a primitive type
+<em>P</em>, and <em>T</em> is the wrapper class for the primitive type
+<em>W</em>, and the conversion from type <em>W</em> to type <em>P</em>
+is unconditionally exact (<a href="#jls-5.7.2">5.7.2</a>).</p>
+<blockquote>
+<p><code>Integer</code> is exhaustive for a type
+<code>double</code>.</p>
+<pre><code>static int doubleExhaustive(Integer i) {
+    return switch (i) {
+        case double p -&gt; 0;
+    };
+}</code></pre>
+<p>Note that <code>null</code> is not in the domain of a primitive type.
+The execution of an exhaustive switch can fail with an error (a
+<code>MatchException</code> is thrown) if it encounters
+<code>null</code>.</p>
+</blockquote></li>
+</ul>
+</div>
+<ul>
+<li><p>The type <em>T</em> names an <code>abstract</code>
+<code>sealed</code> class or <code>sealed</code> interface <em>C</em>
+and for every permitted direct subclass or subinterface <em>D</em> of
+<em>C</em>, one of the following two conditions holds:</p>
+<ol type="1">
+<li><p>There is no type that both names <em>D</em> and is a subtype of
+<em>T</em>, or</p></li>
+<li><p>There is a type <em>U</em> that both names <em>D</em> and is a
+subtype of <em>T</em>, and
+<del><em>P</em></del><strong><em>CE</em></strong> covers
+<em>U</em>.</p></li>
+</ol>
+<blockquote>
+<p>A <code>default</code> label is permitted, but not required, in the
+case where the switch block exhausts all the permitted direct subclasses
+and subinterfaces of an <code>abstract</code> <code>sealed</code> class
+or <code>sealed</code> interface. For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>sealed interface I permits A, B, C {}
+final class A   implements I {}
+final class B   implements I {}
+record C(int j) implements I {}  // Implicitly final
+
+static int testExhaustive1(I i) {
+    return switch(i) {
+        case A a -&gt; 0;
+        case B b -&gt; 1;
+        case C c -&gt; 2;           // No default required!
+    };
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>As the switch block contains <code>case</code> patterns that match
+against all values of types <code>A</code>, <code>B</code> and
+<code>C</code>, and no other instances of type <code>I</code> are
+permitted, this switch block is exhaustive.</p>
+</blockquote>
+<blockquote>
+<p>The fact that a permitted direct subclass or subinterface may only
+extend a particular parameterization of a generic <code>sealed</code>
+superclass or superinterface means that it may not always need to be
+considered when determining whether a switch block is exhaustive. For
+example:</p>
+</blockquote>
+<blockquote>
+<pre><code>sealed interface J&lt;X&gt; permits D, E {}
+final class D&lt;Y&gt; implements J&lt;String&gt; {}
+final class E&lt;X&gt; implements J&lt;X&gt; {}
+
+static int testExhaustive2(J&lt;Integer&gt; ji) {
+    return switch(ji) {          // Exhaustive!
+        case E&lt;Integer&gt; e -&gt; 42;
+    };
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>As the selector expression has type
+<code>J</code>&lt;<code>Integer</code>&gt; the permitted direct subclass
+<code>D</code> need not be considered as there is no possibility that
+the value of <code>ji</code> can be an instance of <code>D</code>.</p>
+</blockquote></li>
+<li><p>The type <em>T</em> names a record class <em>R</em>, and
+<del><em>P</em></del><strong><em>CE</em></strong> contains a record
+pattern <em>p</em> with a type that names <em>R</em> and for every
+record component of <em>R</em> of type <em>U</em>, if any, the singleton
+set containing the corresponding component pattern of <em>p</em> covers
+<em>U</em>.</p>
+<blockquote>
+<p>A record pattern whose component patterns all cover the type of the
+corresponding record component is considered to cover the record type.
+For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>record Test&lt;X&gt;(Object o, X x){}
+    static int testExhaustiveRecordPattern(Test&lt;String&gt; r) {
+    return switch(r) {                           // Exhaustive!
+        case Test&lt;String&gt;(Object o, String s) -&gt; 0;
+    };
+}</code></pre>
+</blockquote></li>
+<li><p><del><em>P</em></del><strong><em>CE</em></strong> rewrites to a
+set <del><em>Q</em></del><strong><em>QE</em></strong> and
+<del><em>Q</em></del><strong><em>QE</em></strong> covers <em>T</em>.</p>
+<p>A set of case elements,
+<del><em>P</em></del><strong><em>CE</em></strong>, <em>rewrites</em> to
+the set <del><em>Q</em></del><strong><em>QE</em></strong>, if a subset
+of <del><em>P</em></del><strong><em>CE</em></strong> reduces to a
+pattern <em>p</em>, and
+<del><em>Q</em></del><strong><em>QE</em></strong> consists of the
+remaining elements of <del><em>P</em></del><strong><em>CE</em></strong>
+along with the pattern <em>p</em>.</p>
+<p>A non-empty set of patterns, <em>RP</em>, <em>reduces</em> to a
+single pattern <em>rp</em> if one of the following holds:</p>
+<ul>
+<li><p><em>RP</em> covers some type <em>U</em>, and <em>rp</em> is a
+type pattern of type <em>U</em>.</p></li>
+<li><p><em>RP</em> consists of record patterns whose types all erase to
+the same record class <em>R</em> with <em>k</em> (<em>k≥</em>1)
+components and there is a distinguished component <em>c<sub>r</sub></em>
+(1<em>≤r≤k</em>) of <em>R</em> such that for every other component
+<em>c<sub>i</sub></em> (1<em>≤i≤k</em>, <em>i≠r</em>) the set containing
+the component patterns from the record patterns corresponding to
+component <em>c<sub>i</sub></em> is equivalent to a single pattern
+<em>q<sub>i</sub></em>, the set containing the component patterns from
+the record patterns corresponding to the component
+<em>c<sub>r</sub></em> reduces to a single pattern <em>q</em>, and
+<em>rp</em> is the record pattern of type <em>R</em> with a pattern list
+consisting of the patterns <em>q<sub>1</sub></em>, ...,
+<em>q<sub>r-1</sub></em>, <em>q</em>, <em>q<sub>r+1</sub></em>, ...,
+<em>q<sub>k</sub></em>.</p>
+<p>A non-empty set of patterns <em>EP</em> is <em>equivalent</em> to a
+single pattern <em>ep</em> if one of the following holds:</p>
+<ul>
+<li><p><em>EP</em> consists of type patterns whose types all have the
+same erasure <em>T</em>, and <em>ep</em> is a type pattern of type
+<em>T</em>.</p></li>
+<li><p><em>EP</em> consists of record patterns whose types all erase to
+the same record class <em>R</em> with <em>k</em> (<em>k≥</em>1)
+components and for every record component the set containing the
+corresponding component patterns from the record patterns is equivalent
+to a single pattern <em>q<sub>j</sub></em> (1<em>≤j≤k</em>), and
+<em>ep</em> is the record pattern of type <em>R</em> with a component
+pattern list consisting of the component patterns
+<em>q<sub>1</sub></em>,...<em>q<sub>k</sub></em>.</p></li>
+</ul></li>
+</ul></li>
+</ul>
+<blockquote>
+<p>Ordinarily record patterns match only a subset of the values of the
+record type. However, a number of record patterns in a switch block can
+combine to actually match all of the values of the record type. For
+example:</p>
+</blockquote>
+<blockquote>
+<pre><code>sealed interface I permits A, B, C {}
+final class A   implements I {}
+final class B   implements I {}
+record C(int j) implements I {}  // Implicitly final
+record Box(I i) {}
+
+int testExhaustiveRecordPatterns(Box b) {
+    return switch (b) {     // Exhaustive!
+        case Box(A a) -&gt; 0;
+        case Box(B b) -&gt; 1;
+        case Box(C c) -&gt; 2;
+    };
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>Determining whether this switch block is exhaustive requires the
+analysis of the combination of the record patterns. The set containing
+the record pattern <code>Box(I i)</code> covers the type
+<code>Box</code>, and so the set containing the patterns
+<code>Box(A a)</code>, <code>Box(B b)</code>, and <code>Box(C c)</code>
+can be rewritten to the set containing the pattern
+<code>Box(I i)</code>. This is because the set containing the patterns
+<code>A a</code>, <code>B b</code>, <code>C c</code> reduces to the
+pattern <code>I i</code> (because the same set covers the type
+<code>I</code>), and thus the set containing the patterns
+<code>Box(A a)</code>, <code>Box(B b)</code>, <code>Box(C c)</code>
+reduces to the pattern <code>Box(I i)</code>.</p>
+</blockquote>
+<blockquote>
+<p>However, rewriting a set of record patterns is not always so simple.
+For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>record IPair(I i, I j){}
+
+int testNonExhaustiveRecordPatterns(IPair p) {
+    return switch (p) {     // Not Exhaustive!
+        case IPair(A a, A a) -&gt; 0;
+        case IPair(B b, B b) -&gt; 1;
+        case IPair(C c, C c) -&gt; 2;
+    };
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>It is tempting to apply the logic from the previous example to
+rewrite the set containing the patterns <code>IPair(A a, A a)</code>,
+<code>IPair(B b, B b)</code>, <code>IPair(C c, C c)</code> to the set
+containing the pattern <code>IPair(I i, I j)</code>, and hence conclude
+that the switch block exhausts the type <code>IPair</code>. But this is
+incorrect as, for example, the switch block does not actually have a
+label that matches an <code>IPair</code> value whose first component is
+an <code>A</code> value, and second component is a <code>B</code> value.
+It is only valid to combine record patterns on one component if they
+match the same values in the other components. For example, the set
+containing the three record patterns <code>IPair(A a, I i)</code>,
+<code>IPair(B b, I i)</code>, and <code>IPair(C c, I i)</code> can be
+reduced to the pattern <code>IPair(I j, I i)</code>.</p>
+</blockquote>
+<p>A <code>switch</code> statement or expression is <em>exhaustive</em>
+if its switch block is exhaustive for the selector expression.</p>
+<h5 id="jls-14.11.1.2">14.11.1.2 Determining which Switch Label Applies
+at Run Time</h5>
+<p>Both the execution of a <code>switch</code> statement (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.11.3">14.11.3</a>)
+and the evaluation of a <code>switch</code> expression (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.28.2">15.28.2</a>)
+need to determine if a switch label associated with the switch block
+<em>applies</em> to the value of the selector expression. This proceeds
+as follows:</p>
+<ol type="1">
+<li><p><strong>If <em>T</em> is a reference type and if</strong>
+<del>If</del>the value is the null reference, then a <code>case</code>
+label with a <code>null</code> literal applies.</p></li>
+<li><p><del>If the value is not the null reference,
+then</del><strong>Then</strong> we determine the first (if any)
+<code>case</code> label in the switch block that applies to the value as
+follows:</p>
+<ul>
+<li><p><strong>If <em>T</em> is a reference type and if the value is not
+the null reference, then, a</strong> <del>A</del> <code>case</code>
+label with a <code>case</code> constant <em>c</em> applies to a value of
+type <code>Character</code>, <code>Byte</code>, <code>Short</code>,
+<del>or</del> <code>Integer</code> <strong>, <code>Long</code>,
+<code>Float</code>, <code>Double</code> or
+<code>Boolean</code></strong>, if the value is first subjected to
+unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>)
+and the constant <em>c</em> is equal to the unboxed value.</p>
+<blockquote>
+<p>Any unboxing conversion will complete normally as the value being
+unboxed is guaranteed not to be the null reference.</p>
+</blockquote>
+<p>Equality is defined in terms of the <code>==</code> operator (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.21">15.21</a>).</p></li>
+<li><p><strong>If <em>T</em> is a primitive type, then a</strong>
+<del>A</del> <code>case</code> label with a <code>case</code> constant
+<em>c</em> applies to a value that is of type <code>char</code>,
+<code>byte</code>, <code>short</code>, <code>int</code>, <del>or</del>
+<strong><code>long</code>, <code>float</code>, <code>double</code>,
+<code>boolean</code>,</strong> or <code>String</code> or an enum type if
+the constant <em>c</em> is equal to the value.</p>
+<p>Equality is defined in terms of the <code>==</code> operator
+<strong>(<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.21">15.21</a>)
+for the integral types and the boolean type, and in terms of
+representation equivalence (<a
+href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/Double.html#repEquivalence">java.lang.Double</a>)
+for the floating-point types.</strong> <del>unless</del>
+<strong>If</strong> the value is a <code>String</code>, <del>in which
+case</del> equality is defined in terms of the <code>equals</code>
+method of class <code>String</code>.</p></li>
+<li><p>Determining that a <code>case</code> label with a
+<code>case</code> pattern <em>p</em> applies to a value proceeds first
+by checking if the value matches the pattern <em>p</em> (<a
+href="#jls-14.30.2">14.30.2</a>).</p>
+<p>If pattern matching completes abruptly then the process of
+determining which switch label applies completes abruptly for the same
+reason.</p>
+<p>If pattern matching succeeds and the <code>case</code> label is
+unguarded then this <code>case</code> label applies.</p>
+<p>If pattern matching succeeds and the <code>case</code> label is
+guarded, then the guard is evaluated. If the result is of type
+<code>Boolean</code>, it is subjected to unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>).</p>
+<p>If evaluation of the guard or the subsequent unboxing conversion (if
+any) completes abruptly for some reason, the process of determining
+which switch label applies completes abruptly for the same reason.</p>
+<p>Otherwise, if the resulting value is <code>true</code> then the
+<code>case</code> label applies.</p></li>
+<li><p>Determining that a <code>case</code> label with <code>case</code>
+patterns <em>p<sub>1</sub></em>, ..., <em>p<sub>n</sub></em>
+(<em>n≥</em>1) <em>applies</em> to a value proceeds by finding the first
+(if any) <code>case</code> pattern <em>p<sub>i</sub></em>
+(1<em>≤i≤n</em>) that applies to the value.</p>
+<p>Determining that a <code>case</code> pattern applies to a value
+proceeds first by checking the value matches the pattern (<a
+href="#jls-14.30.2">14.30.2</a>). Then:</p>
+<ul>
+<li><p>If pattern matching completes abruptly then the whole process of
+determining which switch label applies completes abruptly for the same
+reason.</p></li>
+<li><p>If pattern matching succeeds and the <code>case</code> label is
+unguarded then this <code>case</code> pattern applies.</p></li>
+<li><p>If pattern matching succeeds and the <code>case</code> label is
+guarded, then the guard is evaluated. If the result is of type
+<code>Boolean</code>, it is subjected to unboxing conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.8">5.1.8</a>).</p>
+<p>If evaluation of the guard or the subsequent unboxing conversion (if
+any) completes abruptly for some reason, then the whole process of
+determining which switch label applies completes abruptly for the same
+reason.</p>
+<p>Otherwise, if the resulting value is <code>true</code> then the
+<code>case</code> pattern applies.</p></li>
+</ul></li>
+<li><p>A <code>case</code> <code>null,</code> <code>default</code> label
+applies to every value.</p></li>
+</ul></li>
+<li><p>If the value is not the null reference, <strong>when <em>T</em>
+is a reference type</strong>, and no <code>case</code> label applies
+according to the rules of step 2, but there is a <code>default</code>
+label associated with the switch block, then the <code>default</code>
+label applies.</p></li>
+</ol>
+<blockquote>
+<p>A single <code>case</code> label can contain several
+<code>case</code> constants. The label applies to the value of the
+selector expression if any one of its constants is equal to the value of
+the selector expression. For example, in the following code, the
+<code>case</code> label applies if the enum variable <code>day</code> is
+either one of the enum constants shown:</p>
+<pre><code>switch (day) {
+    ...
+    case SATURDAY, SUNDAY :
+        System.out.println(&quot;It&#39;s the weekend!&quot;);
+        break;
+    ...
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>If a <code>case</code> label with a <code>case</code> pattern
+applies, then this is because the process of pattern matching the value
+against the pattern has succeeded (<a href="#jls-14.30.2">14.30.2</a>).
+If a value successfully matches a pattern then the process of pattern
+matching initializes any pattern variables declared by the pattern.</p>
+</blockquote>
+<blockquote>
+<p>In C and C++ the body of a <code>switch</code> statement can be a
+statement and statements with <code>case</code> labels do not have to be
+immediately contained by that statement. Consider the simple loop:</p>
+<pre><code>for (i = 0; i &lt; n; ++i) foo();</code></pre>
+<p>where <code>n</code> is known to be positive. A trick known as
+<em>Duff's device</em> can be used in C or C++ to unroll the loop, but
+this is not valid code in the Java programming language:</p>
+<pre><code>int q = (n+7)/8;
+switch (n%8) {
+    case 0: do { foo();    // Great C hack, Tom,
+    case 7:      foo();    // but it&#39;s not valid here.
+    case 6:      foo();
+    case 5:      foo();
+    case 4:      foo();
+    case 3:      foo();
+    case 2:      foo();
+    case 1:      foo();
+            } while (--q &gt; 0);
+}</code></pre>
+<p>Fortunately, this trick does not seem to be widely known or used.
+Moreover, it is less needed nowadays; this sort of code transformation
+is properly in the province of state-of-the-art optimizing
+compilers.</p>
+</blockquote>
+<h4 id="jls-14.11.2">14.11.2 The Switch Block of a <code>switch</code>
+Statement</h4>
+<p>In addition to the general rules for switch blocks (<a
+href="#jls-14.11.1">14.11.1</a>), there are further rules for switch
+blocks in <code>switch</code> statements.</p>
+<p>An <em>enhanced</em> <code>switch</code> statement is one where
+either (i) the type of the selector expression is not <code>char</code>,
+<code>byte</code>, <code>short</code>, <code>int</code>,
+<code>Character</code>, <code>Byte</code>, <code>Short</code>,
+<code>Integer</code>, <code>String</code>, or an enum type, or (ii)
+there is a <code>case</code> pattern or <code>null</code> literal
+associated with the switch block.</p>
+<div class="inserted">
+<blockquote>
+<p>Prior to Java SE 25 only <code>char</code>, <code>byte</code>,
+<code>short</code>, <code>int</code> and reference types were supported
+as the possible selector type of the switch. Since this restriction is
+lifted in Java SE 25, switch statements with the selector types of
+<code>float</code>, <code>double</code>, <code>long</code>,
+<code>boolean</code> or one of their wrapper types are also considered
+as enhanced.</p>
+</blockquote>
+</div>
+<p>All of the following must be true for the switch block of a
+<code>switch</code> statement, or a compile-time error occurs:</p>
+<ul>
+<li><p>No more than one <code>default</code> label is associated with
+the <code>switch</code> block.</p></li>
+<li><p>Every switch rule expression in the switch block is a statement
+expression (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.8">14.8</a>).</p>
+<blockquote>
+<p><code>switch</code> statements differ from <code>switch</code>
+expressions in terms of which expressions may appear to the right of an
+arrow (<code>-&gt;</code>) in the switch block, that is, which
+expressions may be used as <em>switch rule expressions</em>. In a
+<code>switch</code> statement, only a statement expression may be used
+as a switch rule expression, but in a <code>switch</code> expression,
+any expression may be used (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.28.1">15.28.1</a>).</p>
+</blockquote></li>
+<li><p>If the <code>switch</code> statement is an enhanced
+<code>switch</code> statement, then it must be exhaustive (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.11.1.1">14.11.1.1</a>).</p></li>
+</ul>
+<blockquote>
+<p>Prior to Java SE 21, <code>switch</code> statements (and
+<code>switch</code> expressions) were limited in two ways: (i) the type
+of the selector expression was restricted to either an integral type
+(excluding <code>long</code>), an enum type, or <code>String</code> and
+(ii) no <code>case</code> <code>null</code> labels were supported.
+Moreover, unlike <code>switch</code> expressions, <code>switch</code>
+statements did not have to be exhaustive. This is often the cause of
+difficult-to-detect bugs, where no switch label applies and the
+<code>switch</code> statement will silently do nothing. For example:</p>
+</blockquote>
+<blockquote>
+<pre><code>enum E { A, B, C }
+E e = ...;
+switch (e) {
+   case A -&gt; System.out.println(&quot;A&quot;);
+   case B -&gt; System.out.println(&quot;B&quot;);
+   // No case for C!
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>In Java SE 21, in addition to supporting <code>case</code> patterns,
+the two limitations of <code>switch</code> statements (and
+<code>switch</code> expressions) listed above were relaxed to (i) allow
+a selector expression of any reference type, and (ii) to allow a
+<code>case</code> label with a <code>null</code> literal. The designers
+of the Java programming language also decided that enhanced
+<code>switch</code> statements should align with <code>switch</code>
+expressions and be required to be exhaustive. This is often achieved
+with the addition of a trivial <code>default</code> label. For example,
+the following enhanced <code>switch</code> statement is not
+exhaustive:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object o = ...;
+switch (o) {    // Error - non-exhaustive switch!
+    case String s -&gt; System.out.println(&quot;A string!&quot;);
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>but it can easily be made exhaustive:</p>
+</blockquote>
+<blockquote>
+<pre><code>Object o = ...;
+switch (o) {
+    case String s -&gt; System.out.println(&quot;A string!&quot;);
+    default -&gt; {}
+}</code></pre>
+</blockquote>
+<blockquote>
+<p>For compatibility reasons, <code>switch</code> statements that are
+not enhanced <code>switch</code> statements are not required to be
+exhaustive.</p>
+</blockquote>
+<h3 id="jls-14.30">14.30 Patterns</h3>
+<h4 id="jls-14.30.1">14.30.1 Kinds of Patterns</h4>
+<p>A <em>type pattern</em> is used to test whether a value is an
+instance of the type appearing in the pattern. A <em>record pattern</em>
+is used to test whether a value is an instance of a record class type
+and, if it is, to recursively perform pattern matching on the record
+component values.</p>
+<dl>
+<dt><em>Pattern:</em></dt>
+<dd>
+<em>TypePattern</em>
+</dd>
+<dd>
+<em>RecordPattern</em>
+</dd>
+<dt><em>TypePattern:</em></dt>
+<dd>
+<em>LocalVariableDeclaration</em>
+</dd>
+<dt><em>RecordPattern:</em></dt>
+<dd>
+<em>ReferenceType</em> <code>(</code> [<em>ComponentPatternList</em>]
+<code>)</code>
+</dd>
+<dt><em>ComponentPatternList:</em></dt>
+<dd>
+<em>ComponentPattern</em> {<code>,</code> <em>ComponentPattern</em> }
+</dd>
+<dt><em>ComponentPattern:</em></dt>
+<dd>
+<em>Pattern</em>
+</dd>
+<dd>
+<em>MatchAllPattern</em>
+</dd>
+<dt><em>MatchAllPattern:</em></dt>
+<dd>
+<code>_</code>
+</dd>
+</dl>
+<blockquote>
+<p>The following productions from <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.3">4.3</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.3">8.3</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.4.1">8.4.1</a>,
+and <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.4">14.4</a>
+are shown here for convenience:</p>
+</blockquote>
+<blockquote>
+<dl>
+<dt><em>LocalVariableDeclaration:</em></dt>
+<dd>
+{<em>VariableModifier</em>} <em>LocalVariableType</em>
+<em>VariableDeclaratorList</em>
+</dd>
+<dt><em>VariableModifier:</em></dt>
+<dd>
+<em>Annotation</em>
+</dd>
+<dd>
+<code>final</code>
+</dd>
+<dt><em>LocalVariableType:</em></dt>
+<dd>
+<em>UnannType</em>
+</dd>
+<dd>
+<code>var</code>
+</dd>
+<dt><em>VariableDeclaratorList:</em></dt>
+<dd>
+<em>VariableDeclarator</em> {<code>,</code> <em>VariableDeclarator</em>}
+</dd>
+<dt><em>VariableDeclarator:</em></dt>
+<dd>
+<em>VariableDeclaratorId</em> [<code>=</code>
+<em>VariableInitializer</em>]
+</dd>
+<dt><em>VariableDeclaratorId:</em></dt>
+<dd>
+<em>Identifier</em> [<em>Dims</em>]
+</dd>
+<dd>
+<code>_</code>
+</dd>
+<dt><em>Dims:</em></dt>
+<dd>
+{<em>Annotation</em>} <code>[</code> <code>]</code>
+{{<em>Annotation</em>} <code>[</code> <code>]</code>}
+</dd>
+</dl>
+</blockquote>
+<blockquote>
+<p>See <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.3">8.3</a>
+for <em>UnannType</em>.</p>
+</blockquote>
+<p>A pattern is <em>nested</em> in a record pattern if (1) it appears
+directly in the component pattern list of the record pattern, or (2) it
+is nested in a record pattern that appears directly in the component
+pattern list of the record pattern. A pattern is <em>top level</em> if
+it is not nested in a record pattern.</p>
+<p>A type pattern declares one local variable, known as a pattern
+variable. If the declaration includes an identifier then this specifies
+the name of the pattern variable, otherwise the pattern variable is
+called an <em>unnamed pattern variable</em>.</p>
+<p>The rules for a local variable declared in a type pattern are
+specified in <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.4">14.4</a>.
+In addition, all of the following must be true, or a compile-time error
+occurs:</p>
+<ul>
+<li><p>The <em>LocalVariableType</em> in a top level type pattern
+denotes <del>a reference</del><strong>any</strong> type (and furthermore
+is not <code>var</code>).</p></li>
+<li><p>The <em>VariableDeclaratorList</em> consists of a single
+<em>VariableDeclarator</em>.</p></li>
+<li><p>The <em>VariableDeclarator</em> has no initializer.</p></li>
+<li><p>The <em>VariableDeclaratorId</em> has no bracket pairs.</p></li>
+</ul>
+<p>The type of a pattern variable declared in a top level type pattern
+is the <del>reference</del> type denoted by
+<em>LocalVariableType</em>.</p>
+<p>The type of a pattern variable declared in a nested type pattern is
+determined as follows:</p>
+<ul>
+<li><p>If the <em>LocalVariableType</em> is <em>UnannType</em> then the
+type of the pattern variable is denoted by <em>UnannType</em>.</p></li>
+<li><p>If the <em>LocalVariableType</em> is <code>var</code> then the
+type pattern must appear directly in the component pattern list of a
+record pattern, or a compile-time error occurs.</p>
+<p>Let <em>R</em> be the type of the record pattern, and let <em>T</em>
+be the type of the corresponding component field in <em>R</em> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.10.3">8.10.3</a>).
+The type of the pattern variable is the upward projection of <em>T</em>
+with respect to all synthetic type variables mentioned by
+<em>T</em>.</p>
+<blockquote>
+<p>Consider the following declaration of a record class:</p>
+</blockquote>
+<blockquote>
+<pre><code>record R&lt;T&gt;(ArrayList&lt;T&gt; a){}</code></pre>
+</blockquote>
+<blockquote>
+<p>Given the record pattern
+<code>R</code>&lt;<code>String</code>&gt;<code>(var b)</code>, the type
+of the pattern variable <code>b</code> is
+<code>ArrayList</code>&lt;<code>String</code>&gt;.</p>
+</blockquote></li>
+</ul>
+<p>A type pattern is said to be <em>null matching</em> if it is appears
+directly in the component pattern list of a record pattern with type
+<em>R</em>, where the corresponding record component of <em>R</em> has
+type <em>U</em>, <strong><em>U</em> is a reference type</strong> and the
+type pattern is unconditional for the type <em>U</em> (<a
+href="#jls-14.30.3">14.30.3</a>).</p>
+<blockquote>
+<p>Note that this compile-time property of type patterns is used in the
+run-time process of pattern matching (<a
+href="#jls-14.30.2">14.30.2</a>), so it is associated with the type
+pattern for use at run time.</p>
+</blockquote>
+<p>A record pattern consists of a <em>ReferenceType</em> and a component
+pattern list containing component patterns, if any. If
+<em>ReferenceType</em> is not a record class type (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.10">8.10</a>)
+then a compile-time error occurs.</p>
+<p>If the <em>ReferenceType</em> is a raw type, then the type of the
+record pattern is inferred, as described in <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-18.html#jls-18.5.5">18.5.5</a>.
+It is a compile-time error if no type can be inferred for the record
+pattern.</p>
+<p>If the <em>ReferenceType</em> (or any part of it) is annotated then a
+compile-time error occurs.</p>
+<blockquote>
+<p>Future versions of the Java Programming Language may lift this
+restriction on annotations.</p>
+</blockquote>
+<p>Otherwise, the type of the record pattern is
+<em>ReferenceType</em>.</p>
+<p>The length of the record pattern's component pattern list must be the
+same as the length of the record component list in the declaration of
+the record class named by <em>ReferenceType</em> otherwise a
+compile-time error occurs.</p>
+<p>A record pattern does not directly declare any pattern variables
+itself, but may contain declarations of pattern variables in the
+component pattern list.</p>
+<p>It is a compile-time error if a record pattern contains more than one
+declaration of a pattern variable with the same name.</p>
+<p>The <em>match-all pattern</em> is a special pattern that declares no
+pattern variables and can only appear directly in the component pattern
+list of a record pattern <em>r</em>.</p>
+<p>Let <em>R</em> be the type of the record pattern <em>r</em>, and let
+<em>T</em> be the type of the corresponding component field in
+<em>R</em> (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-8.html#jls-8.10.3">8.10.3</a>).
+The type of the match-all pattern is the upward projection of <em>T</em>
+with respect to all synthetic type variables mentioned by
+<em>T</em>.</p>
+<blockquote>
+<p>It can be seen that a match-all pattern is equivalent to a nested
+type pattern that declares an <em>unnamed</em> pattern variable and
+whose <em>LocalVariableType</em> is <code>var</code>.</p>
+</blockquote>
+<h4 id="jls-14.30.2">14.30.2 Pattern Matching</h4>
+<p><em>Pattern matching</em> is the process of testing a value against a
+pattern at run time. Pattern matching is distinct from statement
+execution (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.1">14.1</a>)
+and expression evaluation (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.1">15.1</a>).
+If a value successfully matches a pattern, then the process of pattern
+matching will initialize all the pattern variables declared by the
+pattern, if any.</p>
+<p>The process of pattern matching may involve expression evaluation or
+statement execution. Accordingly, pattern matching is said to
+<em>complete abruptly</em> if evaluation of an expression or execution
+of a statement completes abruptly. An abrupt completion always has an
+associated reason, which is always a <code>throw</code> with a given
+value. Pattern matching is said to <em>complete normally</em> if it does
+not complete abruptly.</p>
+<p>The rules for determining whether a value matches a pattern, and for
+initializing pattern variables, are as follows:</p>
+<ul>
+<li><p>The null reference <em>matches</em> a type pattern if the type
+pattern is null-matching (<a href="#jls-14.30.1">14.30.1</a>); and
+<em>does not match</em> otherwise.</p>
+<p>If the null reference matches, then the pattern variable declared by
+the type pattern is initialized to the null reference.</p>
+<p>If the null reference does not match, then the pattern variable
+declared by the type pattern is not initialized.</p></li>
+<li><p>A value <em>v</em> that is not the null reference
+<em>matches</em> a type pattern of type <em>T</em> if <em>v</em>
+<del>can</del> <strong>could</strong> be converted by <strong>a</strong>
+testing conversion <del>(<a href="#jls-5.7">5.7</a>)</del> <strong>that
+is exact (<a href="#jls-5.7.1">5.7.1</a>)</strong> to the target type
+<em>T</em> <del>without raising a <code>ClassCastException</code></del>;
+and <em>does not match</em> otherwise.</p>
+<p>If <em>v</em> matches, then the pattern variable declared by the type
+pattern is initialized to <em>v</em>.</p>
+<p>If <em>v</em> does not match, then the pattern variable declared by
+the type pattern is not initialized.</p></li>
+<li><p>The null reference <em>does not match</em> a record pattern.</p>
+<p>In this case, any pattern variables appearing in declarations
+contained in the record pattern are not initialized.</p></li>
+<li><p>A value <em>v</em> that is not the null reference
+<em>matches</em> a record pattern with type <em>R</em> and component
+pattern list <em>L</em> if (i) <em>v</em> <del>can</del>
+<strong>could</strong> be converted by <strong>a</strong> testing
+conversion <del>(<a href="#jls-5.7">5.7</a>)</del><strong>that is exact
+(<a href="#jls-5.7.1">5.7.1</a>)</strong> to the target type <em>R</em>
+<del>without raising a <code>ClassCastException</code></del>; and (ii)
+each record component of <em>v</em> matches the corresponding component
+pattern in <em>L</em>; and <em>does not match</em> otherwise.</p>
+<p>Each record component of <em>v</em> is determined by invoking the
+accessor method of <em>v</em> corresponding to that component. If
+execution of the invocation of the accessor method completes abruptly
+for reason <em>S</em>, then pattern matching completes abruptly by
+throwing a <code>MatchException</code> with cause <em>S</em>.</p>
+<blockquote>
+<p>A pattern variable declared by a pattern appearing in the component
+pattern list of a record pattern is initialized only if <em>all</em> the
+patterns in the list match.</p>
+</blockquote></li>
+<li><p>Every value <em>matches</em> a match-all pattern.</p></li>
+</ul>
+<h4 id="jls-14.30.3">14.30.3 Properties of Patterns</h4>
+<p>A pattern <em>p</em> is said to be <em>applicable</em> at a type
+<em>T</em> if one of the following rules apply:</p>
+<ul>
+<li><p>A type pattern that declares a pattern variable of a
+<del>reference</del> type <em>U</em> is applicable at a
+<del>reference</del> type <em>T</em> if there is a testing conversion
+(<a href="#jls-5.7">5.7</a>) from type <em>T</em> to type
+<em>U</em>.</p></li>
+<li><p><del>A type pattern that declares a pattern variable of a
+primitive type <em>P</em> is applicable at the type
+<em>P</em>.</del></p></li>
+<li><p>A record pattern with type <em>R</em> and pattern list <em>L</em>
+is applicable at type <em>T</em> if (i) there is a testing conversion
+(<a href="#jls-5.7">5.7</a>) from type <em>T</em> to type <em>R</em>,
+and (ii) for every component pattern <em>p</em> appearing in <em>L</em>,
+if any, <em>p</em> is applicable at the type of the corresponding
+component field in <em>R</em>.</p></li>
+<li><p>A match-all pattern is applicable at every type
+<em>T</em>.</p></li>
+</ul>
+<p>A pattern <em>p</em> is said to be <em>unconditional</em> for a type
+<em>T</em> if every value of <del>type</del> <em>T</em> <del>will
+match</del><strong>matches</strong> <em>p</em>, <del>and so the testing
+aspect of pattern matching could be elided</del><strong>so that pattern
+matching requires no action at run time</strong>. It is defined as
+follows:</p>
+<ul>
+<li>A type pattern that declares a pattern variable of a
+<del>reference</del> type <em>S</em> is unconditional for a
+<del>reference</del> type <em>T</em> if <del>the erasure of <em>T</em>
+is a subtype of the erasure of <em>S</em></del> <strong>there is a
+testing conversion that is unconditionally exact (<a
+href="#jls-5.7.2">5.7.2</a>) from |<em>T</em>| to
+|<em>S</em>|.</strong></li>
+</ul>
+<div class="deleted">
+<ul>
+<li>A type pattern that declares a pattern variable of a primitive type
+<em>P</em> is unconditional for the type <em>P</em>.</li>
+</ul>
+</div>
+<ul>
+<li>A match-all pattern is unconditional for every type <em>T</em>.</li>
+</ul>
+<blockquote>
+<p>Note that no record pattern is unconditional because the null
+reference does not match any record pattern.</p>
+</blockquote>
+<p>A pattern <em>p</em> is said to <em>dominate</em> another pattern
+<em>q</em> if every value that matches <em>q</em> also matches
+<em>p</em>, and is defined as follows:</p>
+<ul>
+<li><p>A pattern <em>p</em> dominates a type pattern that declares a
+pattern variable of type <em>T</em> if <em>p</em> is unconditional for
+<em>T</em>.</p></li>
+<li><p>A pattern <em>p</em> dominates a record pattern with type
+<em>R</em> if <em>p</em> is unconditional for <em>R</em>.</p></li>
+<li><p>A record pattern with type <em>R</em> and pattern list <em>L</em>
+dominates another record pattern with type <em>S</em> and pattern list
+<em>M</em> if (i) <em>R</em> and <em>S</em> name the same record class,
+and (ii) every component pattern, if any, in <em>L</em> dominates the
+corresponding component pattern in <em>M</em>.</p></li>
+<li><p>A pattern <em>p</em> dominates a match-all pattern with type
+<em>T</em> if <em>p</em> is unconditional for <em>T</em>.</p></li>
+</ul>
+<h2 id="jls-15">Chapter 15: Expressions</h2>
+<h3 id="jls-15.5">15.5 Expressions and Run-Time Checks</h3>
+<p>If the type of an expression is a primitive type, then the value of
+the expression is of that same primitive type.</p>
+<p>If the type of an expression is a reference type, then the class of
+the referenced object, or even whether the value is a reference to an
+object rather than <code>null</code>, is not necessarily known at
+compile time.</p>
+<p>There are a few places in the Java programming language where the
+actual class of a referenced object <strong>or value of a primitive
+type</strong> affects program execution in a manner that cannot be
+deduced from the type of the expression. They are as follows:</p>
+<ul>
+<li><p>Method invocation (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.12">15.12</a>).
+The particular method used for an invocation <code>o.m(...)</code> is
+chosen based on the methods that are part of the class or interface that
+is the type of <code>o</code>. For instance methods, the class of the
+object referenced by the run-time value of <code>o</code> participates
+because a subclass may override a specific method already declared in a
+parent class so that this overriding method is invoked. (The overriding
+method may or may not choose to further invoke the original overridden
+<code>m</code> method.)</p></li>
+<li><p>The <code>instanceof</code> operator (<a
+href="#jls-15.20.2">15.20.2</a>). An expression <del>whose type is a
+reference type</del> may be tested using <code>instanceof</code> to find
+out whether <strong>a)</strong> the class of the object referenced by
+the run-time value of the expression <strong>or b) the primitive type of
+the value of the expression</strong> may be converted to some other
+<del>reference</del> type.</p></li>
+<li><p>Casting (<a href="#jls-15.16">15.16</a>). The class of the object
+referenced by the run-time value of the operand expression might not be
+compatible with the type specified by the cast operator. For reference
+types, this may require a run-time check that throws an exception if the
+class of the referenced object, as determined at run time, cannot be
+converted to the target type.</p></li>
+<li><p>Assignment to an array component of reference type (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-10.html#jls-10.5">10.5</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.13">15.13</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.26.1">15.26.1</a>).
+The type-checking rules allow the array type <em>S</em><code>[]</code>
+to be treated as a subtype of <em>T</em><code>[]</code> if <em>S</em> is
+a subtype of <em>T</em>, but this requires a run-time check for
+assignment to an array component, similar to the check performed for a
+cast.</p></li>
+<li><p>Exception handling (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.20">14.20</a>).
+An exception is caught by a <code>catch</code> clause only if the class
+of the thrown exception object is an <code>instanceof</code> the type of
+the formal parameter of the <code>catch</code> clause.</p></li>
+</ul>
+<p>Situations where the class of an object is not statically known may
+lead to run-time type errors.</p>
+<p>In addition, there are situations where the statically known type may
+not be accurate at run time. Such situations can arise in a program that
+gives rise to compile-time unchecked warnings. Such warnings are given
+in response to operations that cannot be statically guaranteed to be
+safe, and cannot immediately be subjected to dynamic checking because
+they involve non-reifiable types (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.7">4.7</a>).
+As a result, dynamic checks later in the course of program execution may
+detect inconsistencies and result in run-time type errors.</p>
+<p>A run-time type error can occur only in these situations:</p>
+<ul>
+<li><p>In a cast, when the actual class of the object referenced by the
+value of the operand expression is not compatible with the target type
+specified by the cast operator (<a href="#jls-5.5">5.5</a>, <a
+href="#jls-15.16">15.16</a>); in this case a
+<code>ClassCastException</code> is thrown.</p></li>
+<li><p>In an automatically generated cast introduced to ensure the
+validity of an operation on a non-reifiable type (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.7">4.7</a>).</p></li>
+<li><p>In an assignment to an array component of reference type, when
+the actual class of the object referenced by the value to be assigned is
+not compatible with the actual run-time component type of the array (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-10.html#jls-10.5">10.5</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.13">15.13</a>,
+<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-15.html#jls-15.26.1">15.26.1</a>);
+in this case an <code>ArrayStoreException</code> is thrown.</p></li>
+<li><p>When an exception is not caught by any <code>catch</code> clause
+of a <code>try</code> statement (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-14.html#jls-14.20">14.20</a>);
+in this case the thread of control that encountered the exception first
+attempts to invoke an uncaught exception handler (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-11.html#jls-11.3">11.3</a>)
+and then terminates.</p></li>
+</ul>
+<h3 id="jls-15.16">15.16 Cast Expressions</h3>
+<p>A cast expression converts, at run time, a value of one numeric type
+to a similar value of another numeric type; or confirms, at compile
+time, that the type of an expression is <code>boolean</code>; or checks,
+at run time, that a reference value refers to an object either whose
+class is compatible with a specified reference type or list of reference
+types, or which embodies a value of a primitive type.</p>
+<dl>
+<dt><em>CastExpression:</em></dt>
+<dd>
+<code>(</code> <em>PrimitiveType</em> <code>)</code>
+<em>UnaryExpression</em>
+</dd>
+<dd>
+<code>(</code> <em>ReferenceType</em> {<em>AdditionalBound</em>}
+<code>)</code> <em>UnaryExpressionNotPlusMinus</em>
+</dd>
+<dd>
+<code>(</code> <em>ReferenceType</em> {<em>AdditionalBound</em>}
+<code>)</code> <em>LambdaExpression</em> #
+</dd>
+</dl>
+<blockquote>
+<p>The following production from [4.4] is shown here for
+convenience:</p>
+</blockquote>
+<blockquote>
+<dl>
+<dt><em>AdditionalBound:</em></dt>
+<dd>
+<code>&amp;</code> <em>InterfaceType</em>
+</dd>
+</dl>
+</blockquote>
+<p>The parentheses and the type or list of types they contain are
+sometimes called the <em>cast operator</em>.</p>
+<p>If the cast operator contains a list of types, that is, a
+<em>ReferenceType</em> followed by one or more <em>AdditionalBound</em>
+terms, then all of the following must be true, or a compile-time error
+occurs:</p>
+<ul>
+<li><p><em>ReferenceType</em> must denote a class or interface
+type.</p></li>
+<li><p>The erasures (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.6">4.6</a>)
+of all the listed types must be pairwise different.</p></li>
+<li><p>No two listed types may be subtypes of different
+parameterizations of the same generic interface.</p></li>
+</ul>
+<p>The target type for the casting context (<a href="#jls-5.5">5.5</a>)
+introduced by the cast expression is either the <em>PrimitiveType</em>
+or the <em>ReferenceType</em> (if not followed by
+<em>AdditionalBound</em> terms) appearing in the cast operator, or the
+intersection type denoted by the <em>ReferenceType</em> and
+<em>AdditionalBound</em> terms appearing in the cast operator.</p>
+<p>The type of a cast expression is the result of applying capture
+conversion (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-5.html#jls-5.1.10">5.1.10</a>)
+to this target type.</p>
+<blockquote>
+<p>Casts can be used to explicitly "tag" a lambda expression or a method
+reference expression with a particular target type. To provide an
+appropriate degree of flexibility, the target type may be a list of
+types denoting an intersection type, provided the intersection induces a
+functional interface (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-9.html#jls-9.8">9.8</a>).</p>
+</blockquote>
+<p>The result of a cast expression is not a variable, but a value, even
+if the result of evaluating the operand expression is a variable.</p>
+<p>If the compile-time type of the operand cannot be converted by
+casting conversion (<a href="#jls-5.5">5.5</a>) to the target type
+specified by the cast operator, then a compile-time error occurs.</p>
+<p>Otherwise, at run time, the operand value is converted (if necessary)
+by casting conversion to the target type specified by the cast
+operator.</p>
+<p>A <code>ClassCastException</code> is thrown if a cast is found at run
+time to be impermissible.</p>
+<blockquote>
+<p>Some casts result in an error at compile time. Some casts can be
+proven, at compile time, always to be correct at run time. For example,
+it is always correct to convert a value of a class type to the type of
+its superclass; such a cast should require no special action at run
+time. Finally, some casts cannot be proven to be either always correct
+or always incorrect at compile time. Such casts require a test at run
+time. See <a href="#jls-5.5">5.5</a> for details.</p>
+</blockquote>
+<div class="inserted">
+<p>When the result of a cast expression is the same numerical value
+exactly or no <code>ClassCastException</code> was throwed, the
+conversion is characterized as <em>exact</em> (<a
+href="#jls-5.7.1">5.7.1</a>).</p>
+</div>
+<h3 id="jls-15.20">15.20 Relational Operators</h3>
+<h4 id="jls-15.20.2">15.20.2 The <code>instanceof</code> Operator</h4>
+<p>An <code>instanceof</code> expression may perform either type
+comparison or pattern matching.</p>
+<dl>
+<dt><em>InstanceofExpression:</em></dt>
+<dd>
+<em>RelationalExpression</em> <code>instanceof</code>
+<del><em>ReferenceType</em></del><strong>Type</strong>
+</dd>
+<dd>
+<em>RelationalExpression</em> <code>instanceof</code> <em>Pattern</em>
+</dd>
+</dl>
+<p>If the operand to the right of the <code>instanceof</code> keyword is
+a <del><em>ReferenceType</em></del><strong><em>Type</em></strong>, then
+the <code>instanceof</code> keyword is the <em>type comparison
+operator</em>.</p>
+<p>If the operand to the right of the <code>instanceof</code> keyword is
+a <em>Pattern</em>, then the <code>instanceof</code> keyword is the
+<em>pattern match operator</em>.</p>
+<p><strong>The type of the expression <em>RelationalExpression</em> can
+be a reference type, a primitive type</strong> <strong>or the null
+type.</strong></p>
+<p>The following rules apply when <code>instanceof</code> is the type
+comparison operator:</p>
+<ul>
+<li><p><del>The type of the expression <em>RelationalExpression</em>
+must be a reference type</del> <del>or the null type, or a compile-time
+error occurs.</del></p></li>
+<li><p>The <strong>type of the</strong> <em>RelationalExpression</em>
+<del>must be checked cast compatible with the <em>ReferenceType</em> (<a
+href="#jls-5.5">5.5</a>)</del> <strong>must be convertible by testing
+conversion to the <em>Type</em> (<a href="#jls-5.7">5.7</a>)</strong>,
+or a compile-time error occurs.</p></li>
+<li><p>At run time, the result of the type comparison operator is
+determined as follows:</p>
+<ul>
+<li><p>If <strong><em>Type</em> is a reference type and</strong> the
+value of the <em>RelationalExpression</em> is the null reference (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.1">4.1</a>),
+then the result is <code>false</code>.</p></li>
+<li><p>If <strong><em>Type</em> is a reference type and</strong> the
+value of the <em>RelationalExpression</em> is not the null reference,
+<strong>or if <em>Type</em> is a primitive type,</strong> then the
+result is <code>true</code> if the value could be <del>cast to the
+<em>ReferenceType</em> without raising a
+<code>ClassCastException</code></del> <strong>converted to the
+<em>Type</em> by a testing conversion that is exact (<a
+href="#jls-5.7.1">5.7.1</a>)</strong>, and <code>false</code>
+otherwise.</p></li>
+</ul></li>
+</ul>
+<div class="editorial">
+<blockquote>
+<p>Prior to Java SE 25, the <code>instanceof</code> operator has been
+examining checked cast compatibility between reference types only. The
+potential conversions were a) an identity conversion, b) a widening
+reference conversion and c) a narrowing reference conversion that is
+checked. While prior to Java SE 25 the type of the
+<em>RelationalExpression</em> has been only used to verify checked cast
+compatibility, in Java SE 25 the type of the
+<em>RelationalExpression</em> is also used to verify at run time that
+the type of the <em>RelationalExpression</em> is the one deduced at
+compile-time and not the erased one. The deduced is also significant
+during the selection of the testing conversion which now includes
+primitive types as well. For example:</p>
+<pre><code>List&lt;Short&gt; s = ...
+if (s.get(0) instanceof int) { ... }</code></pre>
+<p>In this example the deduced type is <code>Short</code> and the erased
+type is <code>Object</code>. <code>instanceof</code> safeguards the
+testing conversion from <code>Short</code> to <code>int</code> (that
+consists of an unboxing conversion followed by a widening primitive
+conversion) and not the testing conversion from <code>Object</code> to
+<code>int</code> which is also a valid testing conversion (that consists
+of a narrowing reference conversion and an unboxing conversion). As a
+result the deduced type, <code>Short</code>, is the one that witnesses
+the testing conversion from <code>Short</code> to <code>int</code>.</p>
+</blockquote>
+</div>
+<p>The following rules apply when <code>instanceof</code> is the pattern
+match operator:</p>
+<ul>
+<li><p><del>The type of the expression <em>RelationalExpression</em>
+must be a reference type</del> <del>or the null type, or a compile-time
+error occurs.</del></p></li>
+<li><p>The <em>Pattern</em> must be applicable at the type of the
+expression <em>RelationalExpression</em> (<a
+href="#jls-14.30.3">14.30.3</a>), or a compile-time error
+occurs.</p></li>
+<li><p>At run time, the result of the pattern match operator is
+determined as follows:</p>
+<ul>
+<li><p>If <strong><em>Type</em> is a reference type and</strong> the
+value of the <em>RelationalExpression</em> is the null reference, then
+the result is <code>false</code>.</p></li>
+<li><p>If <strong><em>Type</em> is a reference type and</strong> the
+value of the <em>RelationalExpression</em> is not the null reference,
+<strong>or if <em>Type</em> is a primitive type,</strong> then the
+result is <code>true</code> if the value matches the <em>Pattern</em>
+(<a href="#jls-14.30.2">14.30.2</a>), and <code>false</code>
+otherwise.</p>
+<blockquote>
+<p>A side effect of a <code>true</code> result is that all the pattern
+variables declared in <em>Pattern</em>, if any, will be initialized.</p>
+</blockquote></li>
+</ul></li>
+</ul>
+<div class="example">
+<p>Example 15.20.2-1. The Type Comparison Operator</p>
+<pre><code>class Point   { int x, y; }
+class Element { int atomicNumber; }
+class Test {
+    public static void main(String[] args) {
+        Point   p = new Point();
+        Element e = new Element();
+        if (e instanceof Point) {  // compile-time error
+            System.out.println(&quot;I get your point!&quot;);
+            p = (Point)e;  // compile-time error
+        }
+    }
+}</code></pre>
+<p>This program results in two compile-time errors. The cast
+<code>(Point)e</code> is incorrect because no instance of
+<code>Element</code> or any of its possible subclasses (none are shown
+here) could possibly be an instance of any subclass of
+<code>Point</code>. The <code>instanceof</code> expression is incorrect
+for exactly the same reason. If, on the other hand, the class
+<code>Point</code> were a subclass of <code>Element</code> (an
+admittedly strange notion in this example):</p>
+<pre><code>class Point extends Element { int x, y; }</code></pre>
+<p>then the cast would be possible, though it would require a run-time
+check, and the <code>instanceof</code> expression would then be sensible
+and valid. The cast <code>(Point)e</code> would never raise an exception
+because it would not be executed if the value of <code>e</code> could
+not correctly be cast to type <code>Point</code>.</p>
+<p>Prior to Java SE 16, the <em>ReferenceType</em> operand of a type
+comparison operator was required to be reifiable (<a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-4.html#jls-4.7">4.7</a>).
+This prevented the use of a parameterized type unless all its type
+arguments were wildcards. The requirement was lifted in Java SE 16 to
+allow more parameterized types to be used. For example, in the following
+program, it is legal to test whether the method parameter
+<code>x</code>, with static type <code>List&lt;Integer&gt;</code>, has a
+more "refined" parameterized type <code>ArrayList&lt;Integer&gt;</code>
+at run time:</p>
+<pre><code>import java.util.ArrayList;
+import java.util.List;
+
+class Test2 {
+    public static void main(String[] args) {
+        List&lt;Integer&gt; x = new ArrayList&lt;Integer&gt;();
+
+        if (x instanceof ArrayList&lt;Integer&gt;) {  // OK
+            System.out.println(&quot;ArrayList of Integers&quot;);
+        }
+        if (x instanceof ArrayList&lt;String&gt;) {  // error
+            System.out.println(&quot;ArrayList of Strings&quot;);
+        }
+        if (x instanceof ArrayList&lt;Object&gt;) {  // error
+            System.out.println(&quot;ArrayList of Objects&quot;);
+        }
+    }
+}</code></pre>
+<p>The first <code>instanceof</code> expression is legal because there
+is a casting conversion from <code>List&lt;Integer&gt;</code> to
+<code>ArrayList&lt;Integer&gt;</code>. However, the second and third
+<code>instanceof</code> expressions both cause a compile-time error
+because there is no casting conversion from
+<code>List&lt;Integer&gt;</code> to <code>ArrayList&lt;String&gt;</code>
+or <code>ArrayList&lt;Object&gt;</code>.</p>
+</div>
+<h3 id="jls-15.28">15.28 <code>switch</code> Expressions</h3>
+<p>A <code>switch</code> expression transfers control to one of several
+statements or expressions, depending on the value of an expression; all
+possible values of that expression must be handled, and all of the
+several statements and expressions must produce a value for the result
+of the <code>switch</code> expression.</p>
+<dl>
+<dt><em>SwitchExpression:</em></dt>
+<dd>
+<code>switch</code> <code>(</code> <em>Expression</em> <code>)</code>
+<em>SwitchBlock</em>
+</dd>
+</dl>
+<p>The <em>Expression</em> is called the <em>selector expression</em>.
+The type of the selector expression <del>must be <code>char</code>,
+<code>byte</code>, <code>short</code>, <code>int</code>, or a reference
+type, or a compile-time error occurs</del><strong>may be any
+type</strong>.</p>
+<blockquote>
+<p>The body of both a <code>switch</code> expression and a
+<code>switch</code> statement (<a href="#jls-14.11">14.11</a>) is called
+a <em>switch block</em>. General rules which apply to all switch blocks,
+whether they appear in <code>switch</code> expressions or
+<code>switch</code> statements, are given in <a
+href="#jls-14.11.1">14.11.1</a>. The following productions from <a
+href="#jls-14.11.1">14.11.1</a> are shown here for convenience:</p>
+</blockquote>
+<blockquote>
+<dl>
+<dt><em>SwitchBlock:</em></dt>
+<dd>
+<code>{</code> <em>SwitchRule</em> {<em>SwitchRule</em>} <code>}</code>
+</dd>
+<dd>
+<code>{</code> {<em>SwitchBlockStatementGroup</em>}
+{<em>SwitchLabel</em> <code>:</code>} <code>}</code>
+</dd>
+<dt><em>SwitchRule:</em></dt>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>Expression</em>
+<code>;</code>
+</dd>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>Block</em>
+</dd>
+<dd>
+<em>SwitchLabel</em> <code>-&gt;</code> <em>ThrowStatement</em>
+</dd>
+<dt><em>SwitchBlockStatementGroup:</em></dt>
+<dd>
+<em>SwitchLabel</em> <code>:</code> {<em>SwitchLabel</em>
+<code>:</code>} <em>BlockStatements</em>
+</dd>
+<dt><em>SwitchLabel:</em></dt>
+<dd>
+<code>case</code> <em>CaseConstant</em> {<code>,</code>
+<em>CaseConstant</em>}
+</dd>
+<dd>
+<code>case</code> <code>null</code> [<code>,</code>
+<code>default</code>]
+</dd>
+<dd>
+<code>case</code> <em>CasePattern</em> {<code>,</code>
+<em>CasePattern</em>} [<em>Guard</em>]
+</dd>
+<dd>
+<code>default</code>
+</dd>
+<dt><em>CaseConstant:</em></dt>
+<dd>
+<em>ConditionalExpression</em>
+</dd>
+<dt><em>CasePattern:</em></dt>
+<dd>
+<em>Pattern</em>
+</dd>
+<dt><em>Guard:</em></dt>
+<dd>
+<code>when</code> <em>Expression</em>
+</dd>
+</dl>
+</blockquote>
+<h2 id="jls-19">Chapter 19: Syntax</h2>
+<p>This chapter repeats the syntactic grammar given in Chapters 4, 6-10,
+14, and 15, as well as key parts of the lexical grammar from Chapter 3,
+using the notation from <a
+href="https://docs.oracle.com/javase/specs/jls/se24/html/jls-2.html#jls-2.4">2.4</a>.</p>
+<div class="editorial">
+<p>The production for <em>InstanceofExpression</em> is the only one that
+changes. The rest of this section is unchanged.</p>
+</div>
+<div id="jls-19-15" class="grammar">
+<p>Productions from <a href="#jls-15">15</a></p>
+<dl>
+<dt><em>InstanceofExpression:</em></dt>
+<dd>
+<em>RelationalExpression</em> <code>instanceof</code>
+<del><em>ReferenceType</em></del><strong>Type</strong>
+</dd>
+<dd>
+<em>RelationalExpression</em> <code>instanceof</code> <em>Pattern</em>
+</dd>
+</dl>
+</div>
+</main><footer class="legal-footer"><hr/><a href="../legal/copyright.html">Copyright</a> &copy; 1993, 2026, Oracle and/or its affiliates, 500 Oracle Parkway, Redwood Shores, CA 94065 USA.<br>All rights reserved. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java25speclicense.html">license terms</a> and the <a href="https://www.oracle.com/technetwork/java/redist-137594.html">documentation redistribution policy</a>. <!-- Version 25.0.4+7-LTS-189 --></footer>
+</body>
+</html>

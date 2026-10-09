@@ -1,0 +1,26 @@
+1;Manuel Neuer;Torwart;27.03.1986;FC Bayern München;124;0
+12;Oliver Baumann;Torwart;02.06.1990;TSG Hoffenheim;11;0
+21;Alexander Nübel;Torwart;30.09.1996;VfB Stuttgart;3;0
+3;Waldemar Anton;Abwehr;20.07.1996;Borussia Dortmund;12;0
+18;Nathaniel Brown;Abwehr;16.06.2003;Eintracht Frankfurt;3;0
+13;Pascal Groß;Abwehr;15.06.1991;Brighton Hove & Albion;18;1
+6;Joshua Kimmich;Abwehr;08.02.1995;FC Bayern München;108;10
+23;Felix Nmecha;Abwehr;10.10.2000;Borussia Dortmund;6;1
+5;Aleksandar Pavlovic;Abwehr;03.05.2004;FC Bayern München;9;1
+22;David Raum;Abwehr;22.04.1998;RB Leipzig;36;1
+2;Antonio Rüdiger;Abwehr;03.03.1993;Real Madrid;82;3
+15;Nico Schlotterbeck;Abwehr;01.12.1999;Borussia Dortmund;25;0
+4;Jonathan Tah;Abwehr;11.02.1996;FC Bayern München;45;1
+24;Malick Thiaw;Abwehr;08.08.2001;Newcastle United;5;0
+20;Nadiem Amiri;Mittelfeld;27.10.1996;1.FSV Mainz 05;9;1
+8;Leon Goretzka;Mittelfeld;06.02.1995;FC Bayern München;69;15
+16;Angelo Stiller;Mittelfeld;04.04.2001;VfB Stuttgart;7;0
+10;Jamal Musiala;Mittelfeld;26.02.2003;FC Bayern München;40;8
+17;Florian Wirtz;Mittelfeld;03.05.2003;FC Liverpool;39;10
+7;Kai Havertz;Sturm;11.06.1999;Arsenal FC;57;21
+14;Maximilian Beier;Sturm;17.10.2002;Borussia Dortmund;7;0
+25;Lennart Karl;Sturm;22.02.2008;FC Bayern München;2;0
+9;Jamie Leweling;Sturm;26.02.2001;VfB Stuttgart;4;1
+19;Leroy Sané;Sturm;11.01.1996;Galatasaray Istanbul;74;16
+26;Deniz Undav;Sturm;19.07.1996;VfB Stuttgart;7;4
+11;Nick Woltemade;Sturm;14.02.2002;Newcastle United;10;4
