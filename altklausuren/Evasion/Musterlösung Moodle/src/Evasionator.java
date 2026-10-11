@@ -53,7 +53,7 @@ public class Evasionator {
         qc.getQuestions().clear(); // get rid of dummies
         qc.getStartQuestions().clear(); // get rid of dummies
         try ( BufferedReader br = new BufferedReader( new FileReader(
-                "files/exams/evasionator/questions.txt" ) ) ) {
+                "altklausuren/Evasion/Musterlösung Moodle/src/questions.txt" ) ) ) {
             while ( br.ready() ) {
                 QuestionEvasion q = Evasionator.parseQuestion( br.readLine() );
                 if ( q != null ) {
@@ -95,7 +95,7 @@ public class Evasionator {
         // -- SOLUTION !! REMOVE FOR USB DRIVE !!
         evasions.clear(); // get rid of dummies
         try ( BufferedReader br = new BufferedReader( new FileReader(
-                "files/exams/evasionator/evasions.txt" ) ) ) {
+                "altklausuren/Evasion/Musterlösung Moodle/src/evasions.txt" ) ) ) {
             while ( br.ready() ) {
                 Evasion e = Evasionator.parseEvasion( br.readLine() );
                 if ( e != null ) {
